@@ -31,43 +31,24 @@ namespace appLauncher.Control
     {
 		int page;
 		DispatcherTimer dispatcher;
-
-
-
-
         public ObservableCollection<finalAppItem> listOfApps
         {
             get { return (ObservableCollection<finalAppItem>)GetValue(listOfAppsProperty); }
             set { SetValue(listOfAppsProperty, value); }
         }
-
         // Using a DependencyProperty as the backing store for listOfApps.  This enables animation, styling, binding, etc...
         public static readonly DependencyProperty listOfAppsProperty =
             DependencyProperty.Register("listOfApps", typeof(ObservableCollection<finalAppItem>), typeof(appControl), null);
-
-
-        //Each copy of this control is binded to an app.
-        //public finalAppItem appItem { get { return this.DataContext as finalAppItem; } }
         public appControl()
         {
             this.InitializeComponent();
 			this.Loaded += AppControl_Loaded;
-          //  this.DataContextChanged += (s, e) => Bindings.Update();
         }
 
 		private void AppControl_Loaded(object sender, RoutedEventArgs e)
-		{
-
-            //dispatcher = new DispatcherTimer();
-            //dispatcher.Interval = TimeSpan.FromSeconds(2);
-            //dispatcher.Tick += Dispatcher_Tick;
-            //if (GlobalVariables.pagenum==0)
-            //{
-            //	SwitchedToThisPage();
-            //}
+		{     
 
             GridViewMain.ItemsSource = AllApps.listOfApps.Skip(GlobalVariables.pagenum * GlobalVariables.appsperscreen).Take(GlobalVariables.appsperscreen).ToList();
-
         }
 
 		private void Dispatcher_Tick(object sender, object e)
@@ -78,11 +59,6 @@ namespace appLauncher.Control
 		}
 		public void SwitchedToThisPage()
 		{
-            //if (dispatcher != null)
-            //{
-            //    ProgressRing.IsActive = true;
-            //    dispatcher.Start();
-            //}
             GridViewMain.ItemsSource = AllApps.listOfApps.Skip(GlobalVariables.pagenum * GlobalVariables.appsperscreen).Take(GlobalVariables.appsperscreen).ToList();
         }
 
@@ -93,7 +69,7 @@ namespace appLauncher.Control
 
          private void GridViewMain_DragItemsStarting(object sender, DragItemsStartingEventArgs e)
         {
-             GlobalVariables.isdragging = true;
+            GlobalVariables.isdragging = true;
             object item = e.Items.First();
             var source = sender;
             e.Data.Properties.Add("item", item);
@@ -105,10 +81,6 @@ namespace appLauncher.Control
         {
             GridView view = sender as GridView;
            
-            // Get your data
-
-         //   var item = e.Data.Properties.Where(p => p.Key == "item").Single();
-
             //Find the position where item will be dropped in the gridview
             Point pos = e.GetPosition(view.ItemsPanelRoot);
 
@@ -123,16 +95,16 @@ namespace appLauncher.Control
             var t = (List<finalAppItem>)view.ItemsSource;
             var te = t[((index * GlobalVariables.columns) + (indexy))];
             GlobalVariables.newindex = AllApps.listOfApps.IndexOf(te);
-            AllApps.listOfApps.Move(GlobalVariables.oldindex,GlobalVariables.newindex);
-          GlobalVariables.pagenum = (int)this.DataContext;
+            AllApps.listOfApps.RemoveAt(GlobalVariables.oldindex);
+            AllApps.listOfApps.Insert(GlobalVariables.newindex, GlobalVariables.itemdragged);
+            GlobalVariables.pagenum = (int)this.DataContext;
             SwitchedToThisPage();
           ((Window.Current.Content as Frame).Content as MainPage).UpdateIndicator(GlobalVariables.pagenum);
 
         }
 
         private void GridViewMain_DragOver(object sender, DragEventArgs e)
-        {
-            
+        {            
             GridView d = (GridView)sender;
             e.AcceptedOperation = Windows.ApplicationModel.DataTransfer.DataPackageOperation.Move;
             FlipView c = (FlipView)((Window.Current.Content as Frame).Content as MainPage).getFlipview();
@@ -140,11 +112,9 @@ namespace appLauncher.Control
             if (GlobalVariables.startingpoint.X == 0)
             {
                 GlobalVariables.startingpoint = startpoint;
-
             }
             else
             {
-
                 var a = this.TransformToVisual(c);
                 var b = a.TransformPoint(new Point(0, 0));
                 if (GlobalVariables.startingpoint.X > startpoint.X && startpoint.X < (b.X + 100))
@@ -154,7 +124,6 @@ namespace appLauncher.Control
                         c.SelectedIndex -= 1;
                         GlobalVariables.startingpoint = startpoint;
                     }
-
                 }
                 else if (GlobalVariables.startingpoint.X < startpoint.X && startpoint.X > (b.X + d.ActualWidth - 100))
                 {
@@ -173,7 +142,7 @@ namespace appLauncher.Control
         private async void GridViewMain_ItemClick(object sender, ItemClickEventArgs e)
         {
             finalAppItem fi = (finalAppItem)e.ClickedItem;
-            await fi.appEntry.LaunchAsync();
+            await fi.Launch();
         }
     }
 }

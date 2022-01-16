@@ -1,38 +1,26 @@
 ﻿using appLauncher.Animations;
 using appLauncher.Control;
-using appLauncher.Core;
-using appLauncher.Helpers;
 using appLauncher.Model;
 using appLauncher.Pages;
+using Microsoft.AppCenter.Analytics;
+using Microsoft.AppCenter.Crashes;
 using Microsoft.Toolkit.Uwp.UI.Animations;
+using Swordfish.NET.Collections;
 using System;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.Diagnostics;
-using System.IO;
 using System.Linq;
-using System.Runtime.InteropServices.WindowsRuntime;
 using System.Threading.Tasks;
-using Windows.ApplicationModel.Core;
-using Windows.Foundation;
 using Windows.Foundation.Collections;
-using Windows.Graphics.Display;
 using Windows.Storage;
-using Windows.System;
 using Windows.UI;
 using Windows.UI.Core;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
-using Windows.UI.Xaml.Controls.Primitives;
-using Windows.UI.Xaml.Data;
 using Windows.UI.Xaml.Input;
 using Windows.UI.Xaml.Media;
-using Windows.UI.Xaml.Media.Imaging;
 using Windows.UI.Xaml.Navigation;
 using Windows.UI.Xaml.Shapes;
-using Windows.ApplicationModel;
-using Windows.UI.Xaml.Media.Animation;
-using Windows.System.Threading;
+
 
 // The Blank Page item template is documented at https://go.microsoft.com/fwlink/?LinkId=402352&clcid=0x409
 
@@ -46,13 +34,10 @@ namespace appLauncher
     {
         private int maxRows;
         private int maxColumns;
-        // public ObservableCollection<finalAppItem> finalApps;
         public static FlipViewItem flipViewTemplate;
         StorageFolder localFolder = ApplicationData.Current.LocalFolder;
-        bool pageIsLoaded = false;
-        bool backgroundhasbeenset = false;
-        public CoreDispatcher coredispatcher;
-      
+       
+
         // Delays updating the app list when the size changes.
         DispatcherTimer sizeChangeTimer = new DispatcherTimer();
         int currentTimeLeft = 0;
@@ -74,18 +59,11 @@ namespace appLauncher
             sizeChangeTimer.Tick += SizeChangeTimer_Tick;
             screensContainerFlipView.Items.VectorChanged += Items_VectorChanged;
             backimage.RotationDelay = timeSpan;
-                  
-         }
-
-       private void Dispatching_Tick(object sender, object e)
-        {
-            throw new NotImplementedException();
         }
 
-        internal  async void UpdateIndicator(int pagenum)
+        internal async void UpdateIndicator(int pagenum)
         {
             await AdjustIndicatorStackPanel(pagenum);
-
         }
 
         // Updates grid of apps only when a bit of time has passed after changing the size of the window.
@@ -100,7 +78,7 @@ namespace appLauncher
                 maxRows = GlobalVariables.NumofRoworColumn(12, 84, (int)screensContainerFlipView.ActualHeight);
                 maxColumns = GlobalVariables.NumofRoworColumn(12, 64, (int)screensContainerFlipView.ActualWidth);
                 GlobalVariables.columns = maxColumns;
-                GlobalVariables.appsperscreen=maxColumns*maxRows;
+                GlobalVariables.appsperscreen = maxColumns * maxRows;
                 int additionalPagesToMake = calculateExtraPages(GlobalVariables.appsperscreen) - 1;
                 int fullPages = additionalPagesToMake;
                 int appsLeftToAdd = AllApps.listOfApps.Count() - (fullPages * GlobalVariables.appsperscreen);
@@ -108,7 +86,7 @@ namespace appLauncher
                 {
                     additionalPagesToMake += 1;
                 }
-               if (additionalPagesToMake > 0)
+                if (additionalPagesToMake > 0)
                 {
                     screensContainerFlipView.Items.Clear();
                     for (int i = 0; i < additionalPagesToMake; i++)
@@ -118,13 +96,13 @@ namespace appLauncher
                 }
 
                 this.InvalidateArrange();
-         
+
             }
             else
             {
                 currentTimeLeft -= (int)sizeChangeTimer.Interval.TotalMilliseconds;
             }
-            
+
         }
 
         internal object getFlipview()
@@ -161,21 +139,8 @@ namespace appLauncher
                 });
 
             };
-        await AdjustIndicatorStackPanel(GlobalVariables.pagenum);
+            await AdjustIndicatorStackPanel(GlobalVariables.pagenum);
         }
-
-        //private async void MainPage_BackRequested(object sender, BackRequestedEventArgs e)
-        //      {
-        //	if (AllAppsGrid.Visibility == Visibility.Visible)
-        //	{
-        //		DesktopBackButton.HideBackButton();
-        //		e.Handled = true;
-        //		await Task.WhenAll(
-        //		AllAppsGrid.Fade(0).StartAsync(),
-        //		AppListViewGrid.Blur(0).StartAsync());
-        //		AllAppsGrid.Visibility = Visibility.Collapsed;
-        //	}
-        //}
 
         protected async override void OnNavigatedTo(NavigationEventArgs e)
         {
@@ -184,20 +149,7 @@ namespace appLauncher
             await this.Scale(1, 1, (float)this.ActualWidth / 2, (float)this.ActualHeight / 2, 300).StartAsync();
         }
 
-        /// <summary>
-        /// When an app is selected, the launcher will attempt to launch the selected app.
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        private async void appGridView_ItemClick(object sender, ItemClickEventArgs e)
-        {
-            var clickedApp = (finalAppItem)e.ClickedItem;
-            bool isLaunched = await clickedApp.appEntry.LaunchAsync();
-            if (isLaunched == false)
-            {
-                Debug.WriteLine("Error: App not launched!");
-            }
-        }
+
 
         /// <summary>
         /// Runs when the page has loaded
@@ -211,18 +163,18 @@ namespace appLauncher
         {
             await GlobalVariables.LoadBackgroundImages();
             this.screensContainerFlipView.SelectedIndex = (GlobalVariables.pagenum > 0) ? GlobalVariables.pagenum : 0;
-            maxRows = GlobalVariables.NumofRoworColumn(12, 84, (int)screensContainerFlipView.ActualHeight);
-            maxColumns = GlobalVariables.NumofRoworColumn(12, 64, (int)screensContainerFlipView.ActualWidth);
+            maxRows = GlobalVariables.NumofRoworColumn(12, 94, (int)screensContainerFlipView.ActualHeight);
+            maxColumns = GlobalVariables.NumofRoworColumn(12, 74, (int)screensContainerFlipView.ActualWidth);
             GlobalVariables.columns = maxColumns;
             GlobalVariables.appsperscreen = maxColumns * maxRows;
             int additionalPagesToMake = calculateExtraPages(GlobalVariables.appsperscreen) - 1;
             int fullPages = additionalPagesToMake;
-           int appsLeftToAdd = AllApps.listOfApps.Count() - (fullPages * GlobalVariables.appsperscreen);
+            int appsLeftToAdd = AllApps.listOfApps.Count() - (fullPages * GlobalVariables.appsperscreen);
             if (appsLeftToAdd > 0)
             {
                 additionalPagesToMake += 1;
             }
-           //NOTE: I wasn't able to create an ItemTemplate from C# so I made a GridView
+            //NOTE: I wasn't able to create an ItemTemplate from C# so I made a GridView
             //in the XAML view with the desired values and used its 
             //item template to create identical GridViews.
 
@@ -234,91 +186,20 @@ namespace appLauncher
             //Following code creates any extra app pages then adds apps to each page.
             if (additionalPagesToMake > 0)
             {
-                //ControlTemplate template = new appControl().Template;
+
 
                 for (int i = 0; i < additionalPagesToMake; i++)
                 {
-                    //screensContainerFlipView.Items.Add(new FlipViewItem()
-                    //{
-                    //    Content = new GridView()
-                    //    {
-                    //        ItemTemplate = theTemplate,
-                    //        ItemsPanel = appGridView.ItemsPanel,
-                    //        HorizontalAlignment = HorizontalAlignment.Center,
-                    //        IsItemClickEnabled = true,
-                    //        Margin = new Thickness(0, 10, 0, 0),
-                    //        SelectionMode = ListViewSelectionMode.None
 
-                    //    }
-
-
-                    //});
                     screensContainerFlipView.Items.Add(i);
                 }
 
-
-                //        int j = i + 2;
-                //        {
-                //            var flipViewItem = (FlipViewItem)screensContainerFlipView.Items[j];
-                //            var gridView = (GridView)flipViewItem.Content;
-                //            gridView.ItemClick += appGridView_ItemClick;
-                //        }
-
-                //    }
-                //    int start = 0;
-                //    int end = appsPerScreen;
-
-                //    for (int j = 1; j < fullPages + 1; j++)
-                //    {
-
-                //        FlipViewItem screen = (FlipViewItem)screensContainerFlipView.Items[j];
-                //        GridView gridOfApps = (GridView)screen.Content;
-                //        addItemsToGridViews(gridOfApps, start, end);
-                //        if (j == 1)
-                //        {
-                //            start = appsPerScreen + 1;
-                //            end += appsPerScreen + 1;
-                //        }
-                //        else
-                //        {
-                //            start += appsPerScreen;
-                //            end += appsPerScreen;
-                //        }
-                //    }
-
-
-                //    int startOfLastAppsToAdd = finalApps.Count() - appsLeftToAdd;
-
-
-                //    FlipViewItem finalScreen = (FlipViewItem)screensContainerFlipView.Items[additionalPagesToMake + 1];
-                //    GridView finalGridOfApps = (GridView)finalScreen.Content;
-                //    addItemsToGridViews(finalGridOfApps, startOfLastAppsToAdd, finalApps.Count());
-                //    screensContainerFlipView.SelectedItem = screensContainerFlipView.Items[1];
-                //    AdjustIndicatorStackPanel(1);
-                //}
-                //else
-                //{
-                //    for (int i = 0; i < finalApps.Count() - 1; i++)
-                //    {
-                //        appGridView.Items.Add(finalApps[i]);
-                //    }
-                //}
-                         
-                //  pageIsLoaded = true;
                 screensContainerFlipView.SelectionChanged += FlipViewMain_SelectionChanged;
-                
-
-
             }
             this.screensContainerFlipView.SelectedIndex = (GlobalVariables.pagenum > 0) ? GlobalVariables.pagenum : 0;
 
             await AdjustIndicatorStackPanel(GlobalVariables.pagenum);
         }
-
-        /// <summary>
-        /// Loads local settings e.g. loads background image if it's available.
-        /// </summary>
-     
 
         /// <summary>
         /// Attempts to disable vertical scrolling.
@@ -337,7 +218,8 @@ namespace appLauncher
 
             catch (Exception e)
             {
-
+                Console.WriteLine(e);
+                Crashes.TrackError(e);
             }
         }
 
@@ -353,21 +235,6 @@ namespace appLauncher
             int pagesToMake = (int)Math.Ceiling(numberOfApps / appsPerScreenAsDouble);
             return pagesToMake;
         }
-
-        /// <summary>
-        /// Adds apps to an app page
-        /// </summary>
-        /// <param name="gridOfApps"></param>
-        /// <param name="start"></param>
-        /// <param name="end"></param>
-        //private void addItemsToGridViews(GridView gridOfApps, int start, int end)
-        //{
-        //    for (int k = start; k < end; k++)
-        //    {
-        //        gridOfApps.Items.Add(finalApps[k]);
-        //    }
-        //}
-
 
         /// <summary>
         /// (Not implemented yet) Will attempt to launch an app in the launcher dock.
@@ -387,36 +254,15 @@ namespace appLauncher
         /// <param name="e"></param>
         private void settingsItem_Tapped(object sender, TappedRoutedEventArgs e)
         {
+            Analytics.TrackEvent("Navigating from main page to settings page");
             Debug.WriteLine("You clicked on the settings icon");
             Frame.Navigate(typeof(settings));
         }
-
         /// <summary>
-        /// Runs whenever app the the selected FlipViewItem has changed
+        /// 
         /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        //private async void screensContainerFlipView_SelectionChanged(object sender, SelectionChangedEventArgs e)
-        //{
-        //    if (pageIsLoaded)
-        //    {
-        //        int SelectedIndex = screensContainerFlipView.SelectedIndex;
-        //        if (SelectedIndex == 0)
-        //        {
-        //            //Swipe Right for Cortana!
-        //            await Launcher.LaunchUriAsync(new Uri("ms-cortana://"));
-        //            screensContainerFlipView.SelectedIndex = 1;
-        //           await AdjustIndicatorStackPanel(screensContainerFlipView.SelectedIndex);
-        //        }
-        //        else
-        //        {
-        //            await AdjustIndicatorStackPanel(SelectedIndex);
-
-        //        }
-
-        //    }
-        //}
-
+        /// <param name="selectedIndex"></param>
+        /// <returns></returns>
         private async Task AdjustIndicatorStackPanel(int selectedIndex)
         {
             var indicator = flipViewIndicatorStackPanel;
@@ -428,25 +274,22 @@ namespace appLauncher
                     var ellipse = (Ellipse)indicator.Children[i];
                     ellipseToAnimate = ellipse;
                     ellipse.Fill = new SolidColorBrush(Colors.Orange);
-
                 }
                 else
                 {
                     var ellipse = (Ellipse)indicator.Children[i];
                     ellipse.Fill = (SolidColorBrush)App.Current.Resources["DefaultTextForegroundThemeBrush"];
-
                 }
             }
             float centerX = (float)ellipseToAnimate.ActualWidth / 2;
             float centerY = (float)ellipseToAnimate.ActualHeight / 2;
             float animationScale = 1.7f;
-
             double duration = 300;
+
             if (IndicatorAnimation.oldAnimatedEllipse != null)
             {
                 await Task.WhenAll(ellipseToAnimate.Scale(animationScale, animationScale, centerX, centerY, duration, easingType: EasingType.Back).StartAsync(),
-                    IndicatorAnimation.oldAnimatedEllipse.Scale(1, 1, centerX, centerY, duration, easingType: EasingType.Back).StartAsync());
-
+                IndicatorAnimation.oldAnimatedEllipse.Scale(1, 1, centerX, centerY, duration, easingType: EasingType.Back).StartAsync());
             }
             else
             {
@@ -475,13 +318,7 @@ namespace appLauncher
         private void allAppsButton_Tapped(object sender, TappedRoutedEventArgs e)
         {
             Frame.Navigate(typeof(SearchPage));
-
         }
-
-
-
-
-
 
         private void Filterby_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
@@ -491,49 +328,20 @@ namespace appLauncher
             {
                 case "AtoZ":
                     {
-                        var te = AllApps.Allpackages.OrderBy(x => x.Key.DisplayInfo.DisplayName);
-                        ObservableCollection<finalAppItem> items = new ObservableCollection<finalAppItem>();
-                        foreach (var item in te)
-                        {
-                            items.Add(new finalAppItem
-                            {
-                                appEntry = item.Key,
-                                appLogo = AllApps.listOfApps.First(x => x.appEntry == item.Key).appLogo
-                            });
-                        }
-                        AllApps.listOfApps = items;
+                       
+                      AllApps.listOfApps =(ConcurrentObservableCollection<finalAppItem>) AllApps.listOfApps.OrderBy(x => x.appName);                        
                     }
 
                     break;
                 case "Developer":
                     {
 
-                        var te = AllApps.Allpackages.OrderBy(x => x.Value.Id.Publisher);
-                        ObservableCollection<finalAppItem> items = new ObservableCollection<finalAppItem>();
-                        foreach (var item in te)
-                        {
-                            items.Add(new finalAppItem
-                            {
-                                appEntry = item.Key,
-                                appLogo = AllApps.listOfApps.First(x => x.appEntry == item.Key).appLogo
-                            });
-                        }
-                        AllApps.listOfApps = items;
+                        AllApps.listOfApps = (ConcurrentObservableCollection<finalAppItem>)AllApps.listOfApps.OrderBy(x => x.appDeveloper);               
                     }
                     break;
                 case "Installed":
                     {
-                        var te = AllApps.Allpackages.OrderBy(x => x.Value.InstalledDate);
-                        ObservableCollection<finalAppItem> items = new ObservableCollection<finalAppItem>();
-                        foreach (var item in te)
-                        {
-                            items.Add(new finalAppItem
-                            {
-                                appEntry = item.Key,
-                                appLogo = AllApps.listOfApps.First(x => x.appEntry == item.Key).appLogo
-                            });
-                        }
-                        AllApps.listOfApps = items;
+                        AllApps.listOfApps = (ConcurrentObservableCollection<finalAppItem>)AllApps.listOfApps.OrderBy(x => x.appInstalled);                       
                     }
                     break;
                 default:
@@ -543,7 +351,7 @@ namespace appLauncher
         }
         private void FlipViewMain_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            GlobalVariables.pagenum =((FlipView)sender).SelectedIndex;
+            GlobalVariables.pagenum = ((FlipView)sender).SelectedIndex;
             if (e.AddedItems.Count > 0)
             {
                 var flipViewItem = screensContainerFlipView.ContainerFromIndex(screensContainerFlipView.SelectedIndex);
@@ -584,48 +392,6 @@ namespace appLauncher
             return null;
         }
 
-        //private void Backflip_SelectionChanged(object sender, SelectionChangedEventArgs e)
-        //{
-        //    if (e.AddedItems.Count <= 0) return;
-        //    if (e.RemovedItems.Count <= 0) return;
 
-        //    var newSelectedItem =(FlipViewItem) Backflip.ContainerFromItem(e.AddedItems?.FirstOrDefault());
-        //    var previousSelectedItem = (FlipViewItem)Backflip.ContainerFromItem(e.RemovedItems?.FirstOrDefault());
-
-        //    if (newSelectedItem == null) return;
-        //    if (previousSelectedItem == null) return;
-
-        //    var duration = new Duration(TimeSpan.FromMilliseconds(500));
-
-        //    var hideAnimation = new DoubleAnimation
-        //    {
-        //        From = 1.0,
-        //        To = 0.0,
-        //        AutoReverse = false,
-        //        Duration = duration
-        //    };
-
-        //    var hideSb = new Storyboard();
-        //    hideSb.Children.Add(hideAnimation);
-        //    Storyboard.SetTargetProperty(hideSb, "Opacity");
-        //    Storyboard.SetTarget(hideSb, previousSelectedItem);
-
-        //    hideSb.Begin();
-
-        //    var showAnimation = new DoubleAnimation
-        //    {
-        //        From = 0.0,
-        //        To = 1.0,
-        //        AutoReverse = false,
-        //        Duration = duration
-        //    };
-
-        //    var showSb = new Storyboard();
-        //    showSb.Children.Add(showAnimation);
-        //    Storyboard.SetTargetProperty(showSb, "Opacity");
-        //    Storyboard.SetTarget(showSb, newSelectedItem);
-
-        //    showSb.Begin();
-        //}
     }
 }

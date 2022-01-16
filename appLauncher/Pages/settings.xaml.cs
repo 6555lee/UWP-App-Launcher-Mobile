@@ -16,6 +16,10 @@ using Windows.UI.Xaml.Input;
 using Windows.UI.Xaml.Media;
 using Windows.UI.Xaml.Media.Imaging;
 using Windows.UI.Xaml.Navigation;
+using Microsoft.AppCenter;
+using Microsoft.AppCenter.Crashes;
+using Microsoft.AppCenter.Analytics;
+using Windows.Storage.Streams;
 
 // The Blank Page item template is documented at https://go.microsoft.com/fwlink/?LinkId=234238
 
@@ -27,11 +31,12 @@ namespace appLauncher.Pages
     public sealed partial class settings : Page
     {
         StorageFolder localFolder = ApplicationData.Current.LocalFolder;
-   
+
 
         public settings()
         {
             this.InitializeComponent();
+            Analytics.TrackEvent("Settings Page Loaded");
         }
 
         /// <summary>
@@ -80,102 +85,130 @@ namespace appLauncher.Pages
             var file = await picker.PickMultipleFilesAsync();
             if (file.Any())
             {
-            var backgroundImageFolder = await localFolder.CreateFolderAsync("backgroundImage", CreationCollisionOption.OpenIfExists);
-                
-                if (GlobalVariables.bgimagesavailable) 
+              if (await GlobalVariables.IsFilePresent("images.txt"))
                 {
-                    BitmapImage bitmap = new BitmapImage();
-                    var filesInFolder = await backgroundImageFolder.GetFilesAsync();
-                    foreach (StorageFile item in file)
+                foreach (StorageFile item in file)
                     {
-                        BackgroundImages bi = new BackgroundImages();
-                        bi.Filename = item.DisplayName;
-                        bi.Bitmapimage = new BitmapImage(new Uri(item.Path));
-                        bool exits = filesInFolder.Any(x => x.DisplayName == item.DisplayName);
-                        if (!exits)
-                        {
-                          
-                            GlobalVariables.backgroundImage.Add(bi);
-                           await   item.CopyAsync(backgroundImageFolder);
-                        }
-                       
 
+                        byte[] fileBytes = null;
+                        using (var stream = await item.OpenReadAsync())
+                        {
+                            fileBytes = new byte[stream.Size];
+                            using (var reader = new DataReader(stream))
+                            {
+                                await reader.LoadAsync((uint)stream.Size);
+                                reader.ReadBytes(fileBytes);
+                            }
+                            GlobalVariables.backgroundImage.Add(new BackgroundImages
+                            {
+                                bitmapImage = fileBytes,
+                                filename = item.DisplayName,
+                            });
+
+                        }
                     }
                 }
                 else
                 {
                     foreach (var item in file)
                     {
-                        BackgroundImages bi = new BackgroundImages();
-                        bi.Filename = item.DisplayName;
-                        bi.Bitmapimage = new BitmapImage(new Uri(item.Path));
-                        GlobalVariables.backgroundImage.Add(bi);
-                        await item.CopyAsync(backgroundImageFolder);
+                        byte[] fileBytes = null;
+                        using (var stream = await item.OpenReadAsync())
+                        {
+                            fileBytes = new byte[stream.Size];
+                            using (var reader = new DataReader(stream))
+                            {
+                                await reader.LoadAsync((uint)stream.Size);
+                                reader.ReadBytes(fileBytes);
+                            }
+                            GlobalVariables.backgroundImage.Add(new BackgroundImages
+                            {
+                                bitmapImage = fileBytes,
+                                filename = item.DisplayName
+                            });
+                        }
+
+
                     }
-                    
-                    App.localSettings.Values["bgImageAvailable"] = true;
                     GlobalVariables.bgimagesavailable = true;
                 }
-               //   StorageFile savedImage = await file.CopyAsync(backgroundImageFolder);
-           //    ((Window.Current.Content as Frame).Content as MainPage).loadSettings();
             }
             else
             {
                 Debug.WriteLine("Operation cancelled.");
             }
-        }
-
-        private void AddWebAppButton_Click(object sender, RoutedEventArgs e)
-        {
-
-        }
-
-     
-        private async void RemoveButton_ClickAsync(object sender, RoutedEventArgs e)
-        {
-            
-            if (imagelist.SelectedIndex !=-1)
-            {
-                BackgroundImages bi = (BackgroundImages)imagelist.SelectedItem;
-                if (GlobalVariables.backgroundImage.Any(x=>x.Filename==bi.Filename))
-                {
-                    var files = (from x in GlobalVariables.backgroundImage where x.Filename == bi.Filename select x).ToList();
-                    foreach (var item in files)
-                    {
-                        GlobalVariables.backgroundImage.Remove(item);
-                    }
-                }
-                var backgroundImageFolder = await localFolder.CreateFolderAsync("backgroundImage", CreationCollisionOption.OpenIfExists);
-                var filesinfolder = await backgroundImageFolder.GetFilesAsync();
-                if (filesinfolder.Any(x=>x.DisplayName == bi.Filename))
-                {
-                    IEnumerable<StorageFile> files = (from x in filesinfolder where x.DisplayName== bi.Filename select x).ToList();
-                    foreach (var item in files)
-                    {
-                        await item.DeleteAsync();
-                    }
-                }
             }
-           
-        }
-
-    
-
-        private void ListView_DragItemsStarting(object sender, DragItemsStartingEventArgs e)
-        {
-
-        }
-
-        private void ListView_Drop(object sender, DragEventArgs e)
-        {
-
-        }
-
-        private void Page_Loaded(object sender, RoutedEventArgs e)
-        {
-           
-        }
 
       
+
+
+            private async void RemoveButton_ClickAsync(object sender, RoutedEventArgs e)
+            {
+
+                if (imagelist.SelectedIndex != -1)
+                {
+                    BackgroundImages bi = (BackgroundImages)imagelist.SelectedItem;
+                    if (GlobalVariables.backgroundImage.Any(x => x.filename == bi.filename))
+                    {
+                        var files = (from x in GlobalVariables.backgroundImage where x.filename == bi.filename select x).ToList();
+                        foreach (var item in files)
+                        {
+                            GlobalVariables.backgroundImage.Remove(item);
+                        }
+                    }
+                }
+
+            }
+
+
+
+            private void ListView_DragItemsStarting(object sender, DragItemsStartingEventArgs e)
+            {
+
+            }
+
+            private void ListView_Drop(object sender, DragEventArgs e)
+            {
+
+            }
+
+            private void Page_Loaded(object sender, RoutedEventArgs e)
+            {
+            BackImageColorPicker.Opacity = GlobalVariables.ImageOpacity;
+            BackImageColorPicker.Color = GlobalVariables.ImageColor;
+            ForegroundColorPicker.Color = GlobalVariables.AppForeground;
+            ForegroundColorPicker.Opacity = GlobalVariables.AppForeGroundOpacity;
+            BackGroundColorPicker.Color = GlobalVariables.AppBackground;
+            BackGroundColorPicker.Opacity = GlobalVariables.AppBackgroundOpacity;
+
+            }
+
+        private void BackImageColorPicker_ColorChanged(ColorPicker sender, ColorChangedEventArgs args)
+        {
+            foreach (BackgroundImages item in GlobalVariables.backgroundImage)
+            {
+                item.ImageColor = BackImageColorPicker.Color;
+                item.ImageOpacity = BackImageColorPicker.Opacity;                                                             
+            }
+        }
+
+        private void ForegroundColorPicker_ColorChanged(ColorPicker sender, ColorChangedEventArgs args)
+        {
+            foreach (finalAppItem item in AllApps.listOfApps)
+            {
+                item.ForegroundColor = ForegroundColorPicker.Color;
+                item.ForegroundOpacity = ForegroundColorPicker.Opacity;
+            }
+        }
+
+        private void BackGroundColorPicker_ColorChanged(ColorPicker sender, ColorChangedEventArgs args)
+        {
+            foreach (finalAppItem item in AllApps.listOfApps)
+            {
+                item.BackgroundColor = BackGroundColorPicker.Color;
+                item.BackgroundOpacity = BackGroundColorPicker.Opacity;
+            }
+        }
     }
-}
+    } 
+

@@ -21,6 +21,10 @@ using Windows.UI.Xaml.Data;
 using Windows.UI.Xaml.Input;
 using Windows.UI.Xaml.Media;
 using Windows.UI.Xaml.Navigation;
+using Microsoft.AppCenter;
+using Microsoft.AppCenter.Crashes;
+using Microsoft.AppCenter.Analytics;
+using System.Threading.Tasks;
 
 namespace appLauncher
 {
@@ -31,7 +35,7 @@ namespace appLauncher
     {
         public static ApplicationDataContainer localSettings = ApplicationData.Current.LocalSettings;
 
-       
+        
         /// <summary>
         /// Initializes the singleton application object.  This is the first line of authored code
         /// executed, and as such is the logical equivalent of main() or WinMain().
@@ -51,7 +55,8 @@ namespace appLauncher
         /// <param name="e">Details about the launch request and process.</param>
         protected async override void OnLaunched(LaunchActivatedEventArgs e)
         {
-            GlobalVariables.bgimagesavailable = (App.localSettings.Values["bgImageAvailable"]==null)?false:true;
+           
+            GlobalVariables.bgimagesavailable = App.localSettings.Values["bgImageAvailable"]!=null;
            //Extends view into status bar/title bar, depending on the device used.
             var appView = ApplicationView.GetForCurrentView();
             appView.SetPreferredMinSize(new Size(360, 360));
@@ -67,16 +72,23 @@ namespace appLauncher
 
             if (qualifiers.ContainsKey("DeviceFamily") && qualifiers["DeviceFamily"] == "Mobile")
             {
-               appView.SuppressSystemOverlays = true;
+               appView.TryEnterFullScreenMode();
 
             }
 
 
-            Frame rootFrame = Window.Current.Content as Frame;
-            initialiseLocalSettings();
-
+            Frame rootFrame = (Frame)Window.Current.Content;
             
-
+           
+            AppCenter.Start("f811dbbb-c777-49f8-8b91-e03b7820e34a",
+                   typeof(Analytics), typeof(Crashes));
+            AppCenter.LogLevel = LogLevel.Verbose;
+            await AppCenter.SetEnabledAsync(true);
+            await Crashes.SetEnabledAsync(true);
+            await Analytics.SetEnabledAsync(true);
+            Analytics.TrackEvent("App Starting");
+            Crashes.NotifyUserConfirmation(UserConfirmation.AlwaysSend);
+       //     initialiseLocalSettings();
             // Do not repeat app initialization when the Window already has content,
             // just ensure that the window is active
             if (rootFrame == null)
@@ -101,7 +113,7 @@ namespace appLauncher
                 if (e.PreviousExecutionState != ApplicationExecutionState.Running)
                 {
                     bool loadState = (e.PreviousExecutionState == ApplicationExecutionState.Terminated);
-                    splashScreen extendedSplash = new splashScreen(e.SplashScreen, loadState, ref rootFrame);
+                    SplashScreen extendedSplash = new SplashScreen(e.SplashScreen, loadState, ref rootFrame);
                     rootFrame.Content = extendedSplash;
                     Window.Current.Content = rootFrame;
                 }
@@ -145,17 +157,16 @@ namespace appLauncher
                 AppViewBackButtonVisibility.Collapsed;
         }
 
-        /// <summary>
-        /// Initialises local settings if the app has been started for the first time
-        /// or new settings have been introduced from an update.
-        /// </summary>
-        private void initialiseLocalSettings()
+         //<summary>
+         //Initialises local settings if the app has been started for the first time
+         //or new settings have been introduced from an update.
+         //</summary>
+        private async Task initialiseLocalSettings()
         {
+           
 
-            if (localSettings.Values["bgImageAvailable"] == null)
-            {
-                localSettings.Values["bgImageAvailable"] = "0";
-            }
+
+
         }
 
 
@@ -167,7 +178,9 @@ namespace appLauncher
         /// <param name="e">Details about the navigation failure</param>
         void OnNavigationFailed(object sender, NavigationFailedEventArgs e)
         {
+            Crashes.TrackError(new Exception("Failed to load Page " + e.SourcePageType.FullName));    
             throw new Exception("Failed to load Page " + e.SourcePageType.FullName);
+
         }
 
         /// <summary>
@@ -179,11 +192,13 @@ namespace appLauncher
         /// <param name="e">Details about the suspend request.</param>
         private async void OnSuspending(object sender, SuspendingEventArgs e)
         {
+            Analytics.TrackEvent("Suspending");
             var deferral = e.SuspendingOperation.GetDeferral();
           await GlobalVariables.SaveCollectionAsync();
           await  GlobalVariables.SaveImageOrder();
             //TODO: Save application state and stop any background activity
             deferral.Complete();
         }
+      
     }
 }

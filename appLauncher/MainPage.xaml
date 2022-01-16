@@ -10,6 +10,7 @@
     xmlns:controls="using:Microsoft.Toolkit.Uwp.UI.Controls"
     xmlns:core="using:Microsoft.Xaml.Interactions.Core"
     xmlns:models="using:appLauncher.Model"
+    xmlns:helpers="using:appLauncher.Helpers"
     mc:Ignorable="d"
     Loaded="Page_Loaded"
     PointerEntered="Page_PointerEntered"
@@ -22,8 +23,8 @@
 
         <controls:RotatorTile x:Name="backimage" ItemsSource="{x:Bind local:GlobalVariables.backgroundImage}" Direction="Left" >
             <controls:RotatorTile.ItemTemplate>
-                <DataTemplate >
-                    <Image Stretch="UniformToFill" Source="{Binding Bitmapimage}" />
+                <DataTemplate x:DataType="models:BackgroundImages" >
+                    <Canvas Background="{x:Bind BackImageAsync()}" />
                 </DataTemplate>
             </controls:RotatorTile.ItemTemplate>
         </controls:RotatorTile>

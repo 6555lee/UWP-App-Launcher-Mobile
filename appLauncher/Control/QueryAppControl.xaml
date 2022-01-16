@@ -14,10 +14,10 @@
             <ColumnDefinition Width="60"/>
             <ColumnDefinition Width="*"/>
         </Grid.ColumnDefinitions>
-        <Image Source="{x:Bind AppQueryResult.appLogo}"
+        <!--<Image Source="{x:Bind AppQueryResult.appLogo}"
                Height="50"
-               Width="50"/>
-        <TextBlock Grid.Column="1" Text="{x:Bind AppQueryResult.appEntry.DisplayInfo.DisplayName}"
+               Width="50"/>-->
+        <TextBlock Grid.Column="1" Text="{x:Bind AppQueryResult.appName}"
                    VerticalAlignment="Center"
                    Margin="4,0,0,0"
                    FontSize="16"/>

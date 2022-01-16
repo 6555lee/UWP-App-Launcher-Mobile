@@ -17,77 +17,19 @@ using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Media.Imaging;
 using Windows.UI.StartScreen;
+using Microsoft.AppCenter.Analytics;
+using Microsoft.AppCenter.Crashes;
+using Newtonsoft.Json;
 
 namespace appLauncher.Helpers
 {
-   public static class packageHelper
+   public static class PackageHelper
    {
 		
 		
 		
        public static PackageManager pkgManager = new PackageManager();
-        /// <summary>
-        /// Gets app package and image and returns them as a new "finalAppItem" which will be used for the app control template.
-        /// <para>WARNING: Only use this method when it's REQUIRED. Otherwise use the Async version below this one.</para>
-        /// </summary>
-
-       
-        public static ObservableCollection<finalAppItem> getAllApps()
-        {
-			var listOfInstalledPackages = pkgManager.FindPackagesForUserWithPackageTypes("", PackageTypes.Main);
-            List<Package> allPackages = new List<Package>();
-            List<Package> packages = new List<Package>();
-            allPackages = listOfInstalledPackages.ToList();
-            int count = allPackages.Count();
-
-            for (int i = 0; i < count; i++)
-            {
-                
-                    packages.Add(allPackages[i]);
-               
-
-            }
-
-
-            ObservableCollection<finalAppItem> finalAppItems = new ObservableCollection<finalAppItem>();
-
-            count = packages.Count();
-
-            //Loop will get app entry and logo for each app and create finalAppItem objects with that data.
-            for (int i = 0; i < count; i++)
-            {
-                try
-                {
-                    List<AppListEntry> singleAppListEntries = new List<AppListEntry>();
-                    Task<IReadOnlyList<AppListEntry>> getAppEntriesTask = packages[i].GetAppListEntriesAsync().AsTask();
-                    getAppEntriesTask.Wait();
-                    singleAppListEntries = getAppEntriesTask.Result.ToList();
-
-
-                    BitmapImage logo = new BitmapImage();
-                    var logoStream = singleAppListEntries[0].DisplayInfo.GetLogo(new Size(50, 50));
-                    Task<IRandomAccessStreamWithContentType> logoStreamTask = logoStream.OpenReadAsync().AsTask();
-                    logoStreamTask.Wait();
-                    IRandomAccessStreamWithContentType logoStreamResult = logoStreamTask.Result;
-                    logo.SetSource(logoStreamResult);
-                    finalAppItems.Add(new finalAppItem
-                    {
-                        appEntry = singleAppListEntries[0],
-                        appLogo = logo
-                    });
-                }
-
-                catch(Exception e)
-                {
-                    Debug.WriteLine(e.Message);
-                }
-            }
-            return finalAppItems;
-        }
-
-        public static event EventHandler AppsRetreived;
-		
-
+       public static event EventHandler AppsRetreived;
         /// <summary>
         /// Gets app package and image and returns them as a new "finalAppItem" asynchronously, which will then be used for the app control template.
         /// <para> Of the two getAllApps() methods, this is the preferred version because it doesn't block the stop the rest of the app from running when 
@@ -95,86 +37,91 @@ namespace appLauncher.Helpers
         /// </summary>
         /// <returns></returns>
 
-        public static async Task getAllAppsAsync()
+        public static async Task GetAllAppsAsync()
         {
-			List<KeyValuePair<AppListEntry, Package>> someapps = new List<KeyValuePair<AppListEntry, Package>>();
-            var listOfInstalledPackages = pkgManager.FindPackagesForUserWithPackageTypes("", PackageTypes.Main);
-            List<Package> allPackages = new List<Package>();
-            List<Package> packages = new List<Package>();
-            allPackages = listOfInstalledPackages.ToList();
-            int count = allPackages.Count();
-			
-
-            //for (int i = 0; i < count; i++)
-            //{
-               
-            //    packages.Add(allPackages[i]);
-                
-
-            //}
-
-
-            ObservableCollection<finalAppItem> finalAppItems = new ObservableCollection<finalAppItem>();
-            //count = packages.Count();
-            for (int i = 0; i < count; i++)
+            if (await GlobalVariables.IsFilePresent("collection.txt"))
             {
-                try
-
+                await GlobalVariables.LoadCollectionAsync();
+                GlobalVariables.AppForeground = AllApps.listOfApps[0].ForegroundColor;
+                GlobalVariables.AppForeGroundOpacity = AllApps.listOfApps[0].ForegroundOpacity;
+                GlobalVariables.AppBackground = AllApps.listOfApps[0].BackgroundColor;
+                GlobalVariables.AppBackgroundOpacity = AllApps.listOfApps[0].BackgroundOpacity;
+                AppsRetreived?.Invoke(true, EventArgs.Empty);
+            }
+            else { 
+                IEnumerable<Package> listOfInstalledPackages = pkgManager.FindPackagesForUserWithPackageTypes("", PackageTypes.Main);
+                List<Package> allPackages = listOfInstalledPackages.ToList();
+                foreach (Package item in allPackages)
                 {
-				    List<AppListEntry> singleAppListEntries = new List<AppListEntry>();
-                    
-
-                    var appListEntries = await allPackages[i].GetAppListEntriesAsync();
-					Package p = allPackages[i];
-
-                    singleAppListEntries = appListEntries.ToList();
-                    if (singleAppListEntries.Count > 0)
+                    try
                     {
-                        Debug.WriteLine("YES!");
-                    }
-                    await Windows.ApplicationModel.Core.CoreApplication.MainView.CoreWindow.Dispatcher.RunAsync(CoreDispatcherPriority.Low, async () => {
-						//UI code here
-						try
-						{
-							BitmapImage logo = new BitmapImage();
-
-							var logoStream = singleAppListEntries[0].DisplayInfo.GetLogo(new Size(50, 50));
-
-							IRandomAccessStreamWithContentType whatIWant = await logoStream.OpenReadAsync();
-
-							logo.SetSource(whatIWant);
-
-							finalAppItem itemToAdd = new finalAppItem();
-
-							itemToAdd.appEntry = singleAppListEntries[0];
-
-							itemToAdd.appLogo = logo;
-							finalAppItems.Add(itemToAdd);
-							someapps.Add(new KeyValuePair<AppListEntry, Package>(itemToAdd.appEntry, p));
-						}
-
-						catch (Exception e)
+                        IReadOnlyList<AppListEntry> readonlylist = await item.GetAppListEntriesAsync();
+                        List<AppListEntry> applistentries = readonlylist.ToList();
+                        if (applistentries.Count > 0)
                         {
-                            Debug.WriteLine(e.Message);
+                            Debug.WriteLine("YES!");
                         }
-                    });
+                        else
+                        {
+                            continue;
+                        }
+                        AppListEntry applist = applistentries[0];
+
+                        await Windows.ApplicationModel.Core.CoreApplication.MainView.CoreWindow.Dispatcher.RunAsync(CoreDispatcherPriority.Low, async () =>
+                        {
+                            //UI code here
+                            try
+                            {
+                                RandomAccessStreamReference logoStream;
+                                byte[] temp;
+                                try
+                                {
+                                    logoStream = applist.DisplayInfo.GetLogo(new Size(50, 50));
+
+                                    IRandomAccessStreamWithContentType whatIWant = await logoStream.OpenReadAsync();
+                                    temp = new byte[whatIWant.Size];
+                                    using (DataReader read = new DataReader(whatIWant.GetInputStreamAt(0)))
+                                    {
+                                        await read.LoadAsync((uint)whatIWant.Size);
+                                        read.ReadBytes(temp);
+                                    }
+                                }
+                                catch (Exception e)
+                                {
+                                    Console.Write(e.ToString());
+                                    Crashes.TrackError(e);
+                                    temp = new byte[1];
+                                }
+                                AllApps.listOfApps.Add(new finalAppItem
+                                {
+                                    appName = applist.DisplayInfo.DisplayName,
+                                    appFullName = item.Id.FullName,
+                                    appDeveloper = item.Id.Publisher,
+                                    appInstalled = item.InstalledDate,
+                                    appLogo = temp
+                                });
+                            }
+                            catch (Exception e)
+                            {
+                                Debug.WriteLine(e.Message);
+                                Crashes.TrackError(e);
+                                Analytics.TrackEvent(e.ToString());
+                            }
+                        });
+                    }
+                    catch (Exception e)
+                    {
+
+                        Debug.WriteLine(e.Message);
+                        Crashes.TrackError(e);
+                    }
                 }
-
-                catch (Exception e)
-                {
-                    Debug.WriteLine(e.Message);
-                }
-
+                GlobalVariables.AppForeground = AllApps.listOfApps[0].ForegroundColor;
+                GlobalVariables.AppForeGroundOpacity = AllApps.listOfApps[0].ForegroundOpacity;
+                GlobalVariables.AppBackground = AllApps.listOfApps[0].BackgroundColor;
+                GlobalVariables.AppBackgroundOpacity = AllApps.listOfApps[0].BackgroundOpacity;
+                AppsRetreived?.Invoke(true, EventArgs.Empty);
             }
-            bool yes = true;
-			AllApps.Allpackages = someapps;
-            AllApps.listOfApps = finalAppItems;
-            if (AppsRetreived != null)
-            {
-            AppsRetreived(yes ,EventArgs.Empty);
-
-            }
-            
         }
    }
 }

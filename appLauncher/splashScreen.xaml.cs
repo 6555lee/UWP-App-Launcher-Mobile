@@ -18,6 +18,9 @@ using Windows.UI.Xaml.Data;
 using Windows.UI.Xaml.Input;
 using Windows.UI.Xaml.Media;
 using Windows.UI.Xaml.Navigation;
+using Microsoft.AppCenter;
+using Microsoft.AppCenter.Crashes;
+using Microsoft.AppCenter.Analytics;
 
 // The Blank Page item template is documented at https://go.microsoft.com/fwlink/?LinkId=234238
 
@@ -26,27 +29,28 @@ namespace appLauncher
     /// <summary>
     /// An empty page that can be used on its own or navigated to within a Frame.
     /// </summary>
-    partial class splashScreen : Page
+    partial class SplashScreen : Page
     {
         internal Rect splashImageRect; // Rect to store splash screen image coordinates.
-        private SplashScreen mySplash; // Variable to hold the splash screen object.
+        private Windows.ApplicationModel.Activation.SplashScreen mySplash; // Variable to hold the splash screen object.
         internal bool dismissed = false; // Variable to track splash screen dismissal status.
         internal static Frame rootFrame;
         static bool appsLoaded = false;
         public static Image myImageCopy = new Image();
-        public splashScreen(SplashScreen splashscreen, bool loadState, ref Frame RootFrame)
+        public SplashScreen(Windows.ApplicationModel.Activation.SplashScreen splashscreen, bool loadState, ref Frame RootFrame)
         {
             this.InitializeComponent();
+            Analytics.TrackEvent("Splash screen displaying");
             // Listen for window resize events to reposition the extended splash screen image accordingly.
             // This ensures that the extended splash screen formats properly in response to window resizing.
             Window.Current.SizeChanged += new WindowSizeChangedEventHandler(ExtendedSplash_OnResize);
-            packageHelper.AppsRetreived += PackageHelper_AppsRetreived;
+            PackageHelper.AppsRetreived += PackageHelper_AppsRetreived;
             mySplash = splashscreen;
             if (mySplash != null)
             {
                 rootFrame = RootFrame;
                 // Register an event handler to be executed when the splash screen has been dismissed.
-                mySplash.Dismissed += new TypedEventHandler<SplashScreen, Object>(DismissedEventHandler);
+                mySplash.Dismissed += new TypedEventHandler<Windows.ApplicationModel.Activation.SplashScreen, object>(DismissedEventHandler);
 
                 // Retrieve the window coordinates of the splash screen image.
                 splashImageRect = mySplash.ImageLocation;
@@ -71,7 +75,7 @@ namespace appLauncher
             
         }
 
-        private async void DismissedEventHandler(SplashScreen sender, object args)
+        private async void DismissedEventHandler(Windows.ApplicationModel.Activation.SplashScreen sender, object args)
         {
             await Windows.ApplicationModel.Core.CoreApplication.MainView.CoreWindow.Dispatcher.RunAsync(CoreDispatcherPriority.Normal, () =>
             {
