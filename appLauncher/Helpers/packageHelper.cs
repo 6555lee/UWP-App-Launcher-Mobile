@@ -42,10 +42,10 @@ namespace appLauncher.Helpers
             if (await GlobalVariables.IsFilePresent("collection.txt"))
             {
                 await GlobalVariables.LoadCollectionAsync();
-                GlobalVariables.AppForeground = AllApps.listOfApps[0].ForegroundColor;
-                GlobalVariables.AppForeGroundOpacity = AllApps.listOfApps[0].ForegroundOpacity;
-                GlobalVariables.AppBackground = AllApps.listOfApps[0].BackgroundColor;
-                GlobalVariables.AppBackgroundOpacity = AllApps.listOfApps[0].BackgroundOpacity;
+                if (await GlobalVariables.IsFilePresent("AppTile.txt"))
+                {
+                    
+                }
                 AppsRetreived?.Invoke(true, EventArgs.Empty);
             }
             else { 

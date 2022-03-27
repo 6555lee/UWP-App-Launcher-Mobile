@@ -10,10 +10,10 @@
       xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
       xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
       mc:Ignorable="d"
-          Loaded="Page_Loaded">
+          >
 
     <Grid Background="{ThemeResource AppBarBackground}">
-        <controls:RotatorTile x:Name="backimage" ItemsSource="{x:Bind locals:GlobalVariables.backgroundImage}" Direction="Left" >
+        <controls:RotatorTile x:Name="backimage" ItemsSource="{x:Bind helping:GlobalVariables.backgroundImage}" Direction="Left" >
             <controls:RotatorTile.ItemTemplate>
                 <DataTemplate x:DataType="AppItems:BackgroundImages" >
                     <Canvas Background="{x:Bind BackImageAsync()}"/>
@@ -156,31 +156,39 @@
                                 Name="RemoveButton"/>
 
                                 </StackPanel>
+
                                 <ScrollViewer>
                                     <StackPanel Orientation="Vertical">
-                                    <ListView Margin="10,10" Name="imagelist" CanDrag="True" Width="150" CanDragItems="True" AllowDrop="True" CanReorderItems="True"  SelectionMode="Single" ItemsSource="{x:Bind locals:GlobalVariables.backgroundImage}" >
-                                        <ListView.ItemTemplate>
-                                            <DataTemplate x:DataType="AppItems:BackgroundImages">
-                                                <StackPanel Orientation="Horizontal" >
-                                                    <Canvas Background="{x:Bind BackImageAsync()}" Height="100" Width="100"  >
-                                                        <ToolTipService.ToolTip>
-                                                            <TextBlock Text="{x:Bind filename}" />
-                                                        </ToolTipService.ToolTip>
-                                                    </Canvas>
-                                                </StackPanel>
-                                            </DataTemplate> 
-                                        </ListView.ItemTemplate>
+                                        <ListView Margin="20" Name="imagelist" CanDrag="True" Width="150" CanDragItems="True" AllowDrop="True" CanReorderItems="True"  SelectionMode="Single" ItemsSource="{x:Bind helping:GlobalVariables.backgroundImage}" >
+                                            <ListView.ItemTemplate>
+                                                <DataTemplate x:DataType="AppItems:BackgroundImages">
+                                                    <StackPanel Orientation="Horizontal" >
+                                                        <Canvas Background="{x:Bind BackImageAsync()}" Height="50" Width="50"  >
+                                                            <ToolTipService.ToolTip>
+                                                                <TextBlock Text="{x:Bind filename}" />
+                                                            </ToolTipService.ToolTip>
+                                                        </Canvas>
+                                                    </StackPanel>
+                                                </DataTemplate>
+                                            </ListView.ItemTemplate>
 
-                                    </ListView>
-                                    <ColorPicker Margin="0,50" x:Name="BackImageColorPicker" IsAlphaEnabled="True" IsAlphaSliderVisible="True" 
-                                            IsColorPreviewVisible="True" IsColorSpectrumVisible="True" 
-                                            ColorChanged="BackImageColorPicker_ColorChanged" />
+                                        </ListView>
+                                        
+                                        <StackPanel  Orientation="Horizontal" Margin="20">
+                                            <TextBox Header="Alpha" Width="20" Text="{x:Bind helping:GlobalVariables.ImageOpacity}" />
+                                            <TextBox Header="Red" Width="20" Text="{x:Bind helping:GlobalVariables.ImageColor.R}"/>
+                                            <TextBox  Header="Green" Width="20" Text="{x:Bind helping:GlobalVariables.ImageColor.G}" />
+                                            <TextBox Header="Blue" Width="20" Text="{x:Bind helping:GlobalVariables.ImageColor.B}" />
+                                        </StackPanel>
+                                        <StackPanel Orientation="Vertical">
+                                            <Canvas Background="Transparent" />
+                                        </StackPanel>
                                     </StackPanel>
                                 </ScrollViewer>
 
                             </StackPanel>
-                               
-                           
+
+
                         </StackPanel>
 
 
@@ -189,16 +197,33 @@
                 <PivotItem Header="Apps">
                     <ScrollViewer>
                     <StackPanel Orientation="Vertical">
-                        
-                            <ColorPicker Margin="0,50" x:Name="ForegroundColorPicker" IsAlphaEnabled="True" IsAlphaSliderVisible="True" IsAlphaTextInputVisible="True"
-                                             IsColorChannelTextInputVisible="True" IsColorPreviewVisible="True" IsColorSliderVisible="True" IsColorSpectrumVisible="True" 
-                                              IsMoreButtonVisible="True" ColorChanged="ForegroundColorPicker_ColorChanged"  />
-                            <ColorPicker Margin="0,50" x:Name="BackGroundColorPicker" IsAlphaEnabled="True" IsAlphaSliderVisible="True" IsAlphaTextInputVisible="True"
-                                             IsColorChannelTextInputVisible="True" IsColorPreviewVisible="True" IsColorSliderVisible="True" IsColorSpectrumVisible="True" 
-                                              IsMoreButtonVisible="True" ColorChanged="BackGroundColorPicker_ColorChanged"
-                                     />
-                        
-                    </StackPanel>
+                            <TextBox BorderBrush="Transparent" Text="Icon Overlay Color" />
+                            <StackPanel  Orientation="Horizontal" Margin="20">
+                                <TextBox Header="Alpha" Width="20"    />
+                                <TextBox Header="Red" Width="20" />
+                                <TextBox  Header="Green" Width="20" />
+                                <TextBox Header="Blue" Width="20" />
+                            </StackPanel>
+
+                            <TextBox BorderBrush="Transparent" Text="Icon Overlay Color" />
+                            <StackPanel  Orientation="Horizontal" Margin="20">
+                                <TextBox Header="Alpha" Width="20"    />
+                                <TextBox Header="Red" Width="20" />
+                                <TextBox  Header="Green" Width="20" />
+                                <TextBox Header="Blue" Width="20" />
+                            </StackPanel>
+                            <TextBox BorderBrush="Transparent" Text="Icon Overlay Color" />
+                            <StackPanel  Orientation="Horizontal" Margin="20">
+                                <TextBox Header="Alpha" Width="20"    />
+                                <TextBox Header="Red" Width="20" />
+                                <TextBox  Header="Green" Width="20" />
+                                <TextBox Header="Blue" Width="20" />
+                            </StackPanel>
+                            <StackPanel Orientation="Vertical">
+                                
+                            </StackPanel>
+
+                        </StackPanel>
                     </ScrollViewer>
                 </PivotItem>
             </Pivot>

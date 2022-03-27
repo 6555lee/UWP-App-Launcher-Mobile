@@ -25,6 +25,7 @@ using Microsoft.AppCenter;
 using Microsoft.AppCenter.Crashes;
 using Microsoft.AppCenter.Analytics;
 using System.Threading.Tasks;
+using appLauncher.Helpers;
 
 namespace appLauncher
 {

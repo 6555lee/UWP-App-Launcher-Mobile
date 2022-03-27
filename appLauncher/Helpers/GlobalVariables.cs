@@ -16,35 +16,30 @@ using Windows.Foundation;
 using Windows.Storage;
 using Windows.UI;
 
-namespace appLauncher
+namespace appLauncher.Helpers
 {
     public static class GlobalVariables
     {
+        /// <summary>
+        /// App Tile Settings
+        /// </summary>
         public static Color AppForeground { get; set; } = Colors.Black;
         public static Color AppBackground { get; set; } = Colors.LightBlue;
-        public static Color ImageColor { get; set; } = Colors.Transparent;
-        public static double ImageOpacity { get; set; } = .25;
         public static double AppForeGroundOpacity { get; set; } = .25;
         public static double AppBackgroundOpacity { get; set; } = .67;
-        public static int appsperscreen { get; set; }
-        public static finalAppItem itemdragged { get; set; }
-        public static int columns { get; set; }
-        public static int oldindex { get; set; }
-        public static int newindex { get; set; }
-        public static int pagenum { get; set; }
-        public static bool isdragging { get; set; }
-        public static bool bgimagesavailable { get; set; }
 
-        private static StorageFolder localFolder = ApplicationData.Current.LocalFolder;
+        /// <summary>
+        /// Background Image Settings
+        /// </summary>
         public static ObservableCollection<BackgroundImages> backgroundImage { get; set; } = new ObservableCollection<BackgroundImages>();
-        public static Point startingpoint { get; set; }
+        public static Color ImageColor { get; set; } = Colors.Transparent;
+        public static double ImageOpacity { get; set; } = .25;
 
-        public static async Task Logging(string texttolog)
-        {
-            StorageFolder stors = ApplicationData.Current.LocalFolder;
-            await FileIO.AppendTextAsync(await stors.CreateFileAsync("logfile.txt", CreationCollisionOption.OpenIfExists), texttolog);
-            await FileIO.AppendTextAsync(await stors.CreateFileAsync("logfile.txt", CreationCollisionOption.OpenIfExists), Environment.NewLine);
-        }
+
+        /// <summary>
+        /// Main Page Settings
+        /// </summary>
+        public static int appsperscreen { get; set; }
         public static int NumofRoworColumn(int padding, int objectsize, int sizetofit)
         {
             int amount = 0;
@@ -58,6 +53,33 @@ namespace appLauncher
             return amount;
 
         }
+        public static int columns { get; set; }
+
+       
+        
+        /// <summary>
+        /// AppControl Control Settings
+        /// </summary>
+        public static int oldindex { get; set; }
+        public static int newindex { get; set; }
+        public static int pagenum { get; set; }
+        public static finalAppItem itemdragged { get; set; }
+        public static Point startingpoint { get; set; }
+        public static bool isdragging { get; set; }
+
+
+        /// <summary>
+        /// Global Variables & Functions
+        /// </summary>
+        public static bool bgimagesavailable { get; set; }
+
+        public static async Task Logging(string texttolog)
+        {
+            StorageFolder stors = ApplicationData.Current.LocalFolder;
+            await FileIO.AppendTextAsync(await stors.CreateFileAsync("logfile.txt", CreationCollisionOption.OpenIfExists), texttolog);
+            await FileIO.AppendTextAsync(await stors.CreateFileAsync("logfile.txt", CreationCollisionOption.OpenIfExists), Environment.NewLine);
+        }
+       
         public static async Task LoadCollectionAsync()
         {
            
@@ -111,8 +133,10 @@ namespace appLauncher
                       await Logging(e.ToString());
                       Crashes.TrackError(e);
                     }
-                ImageColor = backgroundImage[0].ImageColor;
-                ImageOpacity = backgroundImage[0].ImageOpacity;
+                if ( await IsFilePresent("BackImageSettings.json"))
+                {
+                    StorageFile imfile = (StorageFile)await ApplicationData.Current.LocalFolder.TryGetItemAsync("BackImageSettings.txt")
+                }
                 }
                      
 
@@ -128,6 +152,7 @@ namespace appLauncher
            
 
         }
+        
     }
     
     }

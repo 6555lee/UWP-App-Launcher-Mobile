@@ -21,7 +21,7 @@
     <Grid Background="{ThemeResource ApplicationPageBackgroundThemeBrush}"
           Name="rootGrid">
 
-        <controls:RotatorTile x:Name="backimage" ItemsSource="{x:Bind local:GlobalVariables.backgroundImage}" Direction="Left" >
+        <controls:RotatorTile x:Name="backimage" ItemsSource="{x:Bind helpers:GlobalVariables.backgroundImage}" Direction="Left" >
             <controls:RotatorTile.ItemTemplate>
                 <DataTemplate x:DataType="models:BackgroundImages" >
                     <Canvas Background="{x:Bind BackImageAsync()}" />

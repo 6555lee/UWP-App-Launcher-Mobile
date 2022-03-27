@@ -1,5 +1,6 @@
 ﻿using appLauncher.Animations;
 using appLauncher.Control;
+using appLauncher.Helpers;
 using appLauncher.Model;
 using appLauncher.Pages;
 using Microsoft.AppCenter.Analytics;

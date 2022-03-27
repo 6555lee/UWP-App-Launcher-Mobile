@@ -20,6 +20,7 @@ using Microsoft.AppCenter;
 using Microsoft.AppCenter.Crashes;
 using Microsoft.AppCenter.Analytics;
 using Windows.Storage.Streams;
+using appLauncher.Helpers;
 
 // The Blank Page item template is documented at https://go.microsoft.com/fwlink/?LinkId=234238
 
@@ -143,26 +144,27 @@ namespace appLauncher.Pages
 
 
             private async void RemoveButton_ClickAsync(object sender, RoutedEventArgs e)
+        {
+
+            if (imagelist.SelectedIndex == -1)
             {
-
-                if (imagelist.SelectedIndex != -1)
+                return;
+            }
+            BackgroundImages bi = (BackgroundImages)imagelist.SelectedItem;
+            if (GlobalVariables.backgroundImage.Any(x => x.filename == bi.filename))
+            {
+                var files = (from x in GlobalVariables.backgroundImage where x.filename == bi.filename select x).ToList();
+                foreach (var item in files)
                 {
-                    BackgroundImages bi = (BackgroundImages)imagelist.SelectedItem;
-                    if (GlobalVariables.backgroundImage.Any(x => x.filename == bi.filename))
-                    {
-                        var files = (from x in GlobalVariables.backgroundImage where x.filename == bi.filename select x).ToList();
-                        foreach (var item in files)
-                        {
-                            GlobalVariables.backgroundImage.Remove(item);
-                        }
-                    }
+                    GlobalVariables.backgroundImage.Remove(item);
                 }
-
             }
 
+        }
 
 
-            private void ListView_DragItemsStarting(object sender, DragItemsStartingEventArgs e)
+
+        private void ListView_DragItemsStarting(object sender, DragItemsStartingEventArgs e)
             {
 
             }
@@ -172,43 +174,9 @@ namespace appLauncher.Pages
 
             }
 
-            private void Page_Loaded(object sender, RoutedEventArgs e)
-            {
-            BackImageColorPicker.Opacity = GlobalVariables.ImageOpacity;
-            BackImageColorPicker.Color = GlobalVariables.ImageColor;
-            ForegroundColorPicker.Color = GlobalVariables.AppForeground;
-            ForegroundColorPicker.Opacity = GlobalVariables.AppForeGroundOpacity;
-            BackGroundColorPicker.Color = GlobalVariables.AppBackground;
-            BackGroundColorPicker.Opacity = GlobalVariables.AppBackgroundOpacity;
+           
 
-            }
-
-        private void BackImageColorPicker_ColorChanged(ColorPicker sender, ColorChangedEventArgs args)
-        {
-            foreach (BackgroundImages item in GlobalVariables.backgroundImage)
-            {
-                item.ImageColor = BackImageColorPicker.Color;
-                item.ImageOpacity = BackImageColorPicker.Opacity;                                                             
-            }
-        }
-
-        private void ForegroundColorPicker_ColorChanged(ColorPicker sender, ColorChangedEventArgs args)
-        {
-            foreach (finalAppItem item in AllApps.listOfApps)
-            {
-                item.ForegroundColor = ForegroundColorPicker.Color;
-                item.ForegroundOpacity = ForegroundColorPicker.Opacity;
-            }
-        }
-
-        private void BackGroundColorPicker_ColorChanged(ColorPicker sender, ColorChangedEventArgs args)
-        {
-            foreach (finalAppItem item in AllApps.listOfApps)
-            {
-                item.BackgroundColor = BackGroundColorPicker.Color;
-                item.BackgroundOpacity = BackGroundColorPicker.Opacity;
-            }
-        }
+      
     }
     } 
 

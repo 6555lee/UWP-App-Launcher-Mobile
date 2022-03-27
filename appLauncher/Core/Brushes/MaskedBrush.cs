@@ -16,19 +16,13 @@ namespace appLauncher.Core.Brushes
 {
     public class MaskedBrush : XamlCompositionBrushBase
     {
-        public MaskedBrush(byte[] stream, Color overlaycolor)
+        public MaskedBrush(byte[] stream, Color color)
         {
             this.logo = stream.AsBuffer().AsStream().AsRandomAccessStream();
             base.FallbackColor = Colors.Transparent;
-            this.overlaycolor = (overlaycolor == null) ? this.FallbackColor : overlaycolor;
-            
-
-
-
+            this.overlaycolor = color;
         }
-        public MaskedBrush()
-        { }
-
+        public MaskedBrush() { }
         private IRandomAccessStream logo;
         private CompositionMaskBrush _maskedbrush;
         private Color overlaycolor { get; set; }
@@ -38,7 +32,7 @@ namespace appLauncher.Core.Brushes
             Compositor compositor = Window.Current.Compositor;
             CompositionColorBrush colorbrush;
             // Use LoadedImageSurface API to get ICompositionSurface from image uri provided
-            colorbrush = compositor.CreateColorBrush((overlaycolor == null) ? this.FallbackColor : overlaycolor);
+            colorbrush = compositor.CreateColorBrush(overlaycolor);
             _maskedbrush = compositor.CreateMaskBrush();
             _maskedbrush.Source = colorbrush;
 

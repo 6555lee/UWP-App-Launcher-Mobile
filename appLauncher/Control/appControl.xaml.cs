@@ -21,6 +21,7 @@ using Windows.UI;
 using System.Collections.ObjectModel;
 using Windows.UI.Input;
 using Windows.UI.Core;
+using appLauncher.Helpers;
 
 // The User Control item template is documented at https://go.microsoft.com/fwlink/?LinkId=234236
 
