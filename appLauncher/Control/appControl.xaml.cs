@@ -143,7 +143,9 @@ namespace appLauncher.Control
         private async void GridViewMain_ItemClick(object sender, ItemClickEventArgs e)
         {
             finalAppItem fi = (finalAppItem)e.ClickedItem;
-            await fi.Launch();
+            await fi.LaunchAsync();
         }
+
+     
     }
 }

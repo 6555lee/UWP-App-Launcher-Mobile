@@ -16,7 +16,7 @@
         <controls:RotatorTile x:Name="backimage" ItemsSource="{x:Bind helping:GlobalVariables.backgroundImage}" Direction="Left" >
             <controls:RotatorTile.ItemTemplate>
                 <DataTemplate x:DataType="AppItems:BackgroundImages" >
-                    <Canvas Background="{x:Bind BackImageAsync()}"/>
+                    <Image Stretch="UniformToFill" Source="{Binding BitmapImageImage}"/>
                 </DataTemplate>
             </controls:RotatorTile.ItemTemplate>
         </controls:RotatorTile>
@@ -159,31 +159,21 @@
 
                                 <ScrollViewer>
                                     <StackPanel Orientation="Vertical">
-                                        <ListView Margin="20" Name="imagelist" CanDrag="True" Width="150" CanDragItems="True" AllowDrop="True" CanReorderItems="True"  SelectionMode="Single" ItemsSource="{x:Bind helping:GlobalVariables.backgroundImage}" >
+                                        <ListView Margin="20" Name="imagelist" CanDrag="True" Width="150" CanDragItems="True" AllowDrop="True" CanReorderItems="True"  SelectionMode="Single" ItemsSource="{x:Bind helping:GlobalVariables.backgroundImage}" ItemClick="imagelist_ItemClick" >
                                             <ListView.ItemTemplate>
                                                 <DataTemplate x:DataType="AppItems:BackgroundImages">
                                                     <StackPanel Orientation="Horizontal" >
-                                                        <Canvas Background="{x:Bind BackImageAsync()}" Height="50" Width="50"  >
+                                                        <Image Stretch="UniformToFill" Source="{x:Bind BitmapImageImage}" Height="50" Width="50"  >
                                                             <ToolTipService.ToolTip>
-                                                                <TextBlock Text="{x:Bind filename}" />
+                                                                <TextBlock Text="{x:Bind Filename}" />
                                                             </ToolTipService.ToolTip>
-                                                        </Canvas>
+                                                        </Image>
                                                     </StackPanel>
                                                 </DataTemplate>
                                             </ListView.ItemTemplate>
 
                                         </ListView>
-                                        
-                                        <StackPanel  Orientation="Horizontal" Margin="20">
-                                            <TextBox Header="Alpha" Width="20" Text="{x:Bind helping:GlobalVariables.ImageOpacity}" />
-                                            <TextBox Header="Red" Width="20" Text="{x:Bind helping:GlobalVariables.ImageColor.R}"/>
-                                            <TextBox  Header="Green" Width="20" Text="{x:Bind helping:GlobalVariables.ImageColor.G}" />
-                                            <TextBox Header="Blue" Width="20" Text="{x:Bind helping:GlobalVariables.ImageColor.B}" />
-                                        </StackPanel>
-                                        <StackPanel Orientation="Vertical">
-                                            <Canvas Background="Transparent" />
-                                        </StackPanel>
-                                    </StackPanel>
+                                   </StackPanel>
                                 </ScrollViewer>
 
                             </StackPanel>

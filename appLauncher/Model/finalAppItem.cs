@@ -22,6 +22,8 @@ using Windows.Management.Deployment;
 using Swordfish.NET.Collections;
 using Microsoft.AppCenter.Crashes;
 using System.Diagnostics;
+using Newtonsoft.Json;
+using Windows.Foundation;
 
 namespace appLauncher.Model
 {
@@ -30,21 +32,35 @@ namespace appLauncher.Model
 	/// </summary>
 	public class finalAppItem
 	{
+		public finalAppItem()
+		{ }
+		public finalAppItem(AppListEntry app,Package pack, byte[] bytes)
+        {
+			this.appName = app.DisplayInfo.DisplayName;
+			this.appFullName = pack.Id.FullName;
+			this.appDeveloper = pack.Id.Publisher;
+			this.appInstalled = pack.InstalledDate;
+			this.appLogo = bytes;
+        }
+		[JsonIgnore]
+		public AppListEntry AppListentry { get; set; }
+		[JsonIgnore]
+		public Package Pack { get; set; }
 		public string appName { get; set; }
 		public string appDeveloper { get; set; }
 		public DateTimeOffset appInstalled { get; set; }
 		public  string appFullName { get; set; }
-		public Byte[] appLogo { get; set; }
+		public byte[] appLogo { get; set; }
 		public Color ForegroundColor { get; set; } = Colors.Red;
-		public Color BackgroundColor { get; set; } = Colors.Black;
-		public Double ForegroundOpacity { get; set; } = .90;
-		public Double BackgroundOpacity { get; set; } = .35;
+		public Color BackgroundColor { get; set; } = Colors.LightGreen;
+		public double AppTileForegroundOpacity { get; set; } = 1;
+		public double AppTileBackgroundOpacity { get; set; } = .50;
 		public SolidColorBrush TextBrush()
         {
 			return new SolidColorBrush
 			{
 				Color = this.ForegroundColor,
-				Opacity = this.ForegroundOpacity
+				Opacity = Convert.ToDouble(this.ForegroundColor.A)
 			};
         }
 		public MaskedBrush LabelBrush()
@@ -56,26 +72,27 @@ namespace appLauncher.Model
 			return new SolidColorBrush
 			{
 				Color = this.BackgroundColor,
-				Opacity = this.BackgroundOpacity
+				Opacity =Convert.ToDouble(this.BackgroundColor.A)
 			};
         }
-		public async Task Launch()
-        {
-			try
-			{
-				PackageManager pkgmgr = new PackageManager();
-				Package applist = pkgmgr.FindPackage(this.appFullName);
-				var aplistentry = await applist.GetAppListEntriesAsync();
-				await aplistentry[0].LaunchAsync();
-			}
-			catch (Exception e)
-            {
-				Debug.WriteLine(e.Message);
-				Crashes.TrackError(e);
-            }
-        }
-            
-    }
+		//public async Task SetLogo()
+		//{
+		//	var logoStream = this.AppListentry.DisplayInfo.GetLogo(new Size(50, 50));
+		//	IRandomAccessStreamWithContentType whatIWant = await logoStream.OpenReadAsync();
+		//	byte[] temp = new byte[whatIWant.Size];
+		//	using (DataReader read = new DataReader(whatIWant.GetInputStreamAt(0)))
+		//	{
+		//		await read.LoadAsync((uint)whatIWant.Size);
+		//		read.ReadBytes(temp);
+		//	}
+		//	this.appLogo = temp;
+		//}
+		public async Task<bool> LaunchAsync()
+		{
+			return await this.AppListentry.LaunchAsync();
+		}
+
+	}
 
 
 	public static class AllApps

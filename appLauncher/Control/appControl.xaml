@@ -17,8 +17,8 @@
             <GridView.Resources>
                <DataTemplate x:Key="GridViewMainDataTemplate" x:DataType="local:finalAppItem">
                     <Grid Width="64" Height="84" Background="Transparent" Margin="12">
-                        <StackPanel Height="84" Width="84" Background="{x:Bind BackgroundBrush()}" Opacity="{x:Bind BackgroundOpacity}">
-                            <Canvas Height="50" Width="50" Background="{x:Bind LabelBrush()}" Opacity="{x:Bind ForegroundOpacity}"/>
+                        <StackPanel Height="84" Width="64" Background="{x:Bind BackgroundBrush()}" Opacity="{x:Bind AppTileBackgroundOpacity}">
+                            <Canvas Height="50" Width="50" Background="{x:Bind LabelBrush()}" Opacity="{x:Bind AppTileForegroundOpacity}"/>
                             <TextBlock Name="appName" Text="{x:Bind appName}" 
                                        FontSize="12" 
                                        TextAlignment="Center" 
@@ -27,7 +27,7 @@
                                        TextTrimming="CharacterEllipsis" 
                                        TextWrapping="WrapWholeWords"
                                        Foreground="{x:Bind TextBrush()}"
-                                       Opacity="{x:Bind ForegroundOpacity}"/>
+                                       Opacity="{x:Bind ForegroundColor.A}"/>
                             
                         </StackPanel>
                     </Grid>

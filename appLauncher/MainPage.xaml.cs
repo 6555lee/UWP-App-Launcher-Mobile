@@ -330,19 +330,22 @@ namespace appLauncher
                 case "AtoZ":
                     {
                        
-                      AllApps.listOfApps =(ConcurrentObservableCollection<finalAppItem>) AllApps.listOfApps.OrderBy(x => x.appName);                        
+                     var reordered =(ConcurrentObservableCollection<finalAppItem>) AllApps.listOfApps.OrderBy(x => x.appName);
+                     AllApps.listOfApps = reordered;
                     }
 
                     break;
                 case "Developer":
                     {
 
-                        AllApps.listOfApps = (ConcurrentObservableCollection<finalAppItem>)AllApps.listOfApps.OrderBy(x => x.appDeveloper);               
+                       var reordered = (ConcurrentObservableCollection<finalAppItem>)AllApps.listOfApps.OrderBy(x => x.appDeveloper);
+                        AllApps.listOfApps = reordered;
                     }
                     break;
                 case "Installed":
                     {
-                        AllApps.listOfApps = (ConcurrentObservableCollection<finalAppItem>)AllApps.listOfApps.OrderBy(x => x.appInstalled);                       
+                        var reordered =(ConcurrentObservableCollection<finalAppItem>)AllApps.listOfApps.OrderBy(x => x.appInstalled);
+                        AllApps.listOfApps = reordered;
                     }
                     break;
                 default:

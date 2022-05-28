@@ -1,6 +1,7 @@
 ﻿using appLauncher.Helpers;
 using appLauncher.Model;
 
+using Microsoft.AppCenter.Analytics;
 using Microsoft.AppCenter.Crashes;
 
 using Newtonsoft.Json;
@@ -10,11 +11,16 @@ using Swordfish.NET.Collections;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.IO;
+using System.Runtime.InteropServices.WindowsRuntime;
 using System.Threading.Tasks;
 
 using Windows.Foundation;
+using Windows.Graphics.Imaging;
 using Windows.Storage;
+using Windows.Storage.Streams;
 using Windows.UI;
+using Windows.UI.Xaml.Media.Imaging;
 
 namespace appLauncher.Helpers
 {
@@ -23,17 +29,14 @@ namespace appLauncher.Helpers
         /// <summary>
         /// App Tile Settings
         /// </summary>
-        public static Color AppForeground { get; set; } = Colors.Black;
-        public static Color AppBackground { get; set; } = Colors.LightBlue;
-        public static double AppForeGroundOpacity { get; set; } = .25;
-        public static double AppBackgroundOpacity { get; set; } = .67;
-
+ 
+      
         /// <summary>
         /// Background Image Settings
         /// </summary>
         public static ObservableCollection<BackgroundImages> backgroundImage { get; set; } = new ObservableCollection<BackgroundImages>();
         public static Color ImageColor { get; set; } = Colors.Transparent;
-        public static double ImageOpacity { get; set; } = .25;
+        public static double ImageOpacity { get; set; } = .25; 
 
 
         /// <summary>
@@ -78,6 +81,7 @@ namespace appLauncher.Helpers
             StorageFolder stors = ApplicationData.Current.LocalFolder;
             await FileIO.AppendTextAsync(await stors.CreateFileAsync("logfile.txt", CreationCollisionOption.OpenIfExists), texttolog);
             await FileIO.AppendTextAsync(await stors.CreateFileAsync("logfile.txt", CreationCollisionOption.OpenIfExists), Environment.NewLine);
+            Analytics.TrackEvent(texttolog);
         }
        
         public static async Task LoadCollectionAsync()
@@ -126,6 +130,12 @@ namespace appLauncher.Helpers
                         StorageFile item = (StorageFile)await ApplicationData.Current.LocalFolder.TryGetItemAsync("images.txt");
                         var images = await FileIO.ReadTextAsync(item);
                         backgroundImage = JsonConvert.DeserializeObject<ObservableCollection<BackgroundImages>>(images);
+                    foreach (var items in backgroundImage)
+                    {
+                        BitmapImage bmi = await GlobalVariables.ConvertfromByteArraytoBitmapImage(items.ImageData);
+                        items.BitmapImageImage = bmi;
+                    }
+                   
                       
                     }
                     catch (Exception e)
@@ -133,10 +143,7 @@ namespace appLauncher.Helpers
                       await Logging(e.ToString());
                       Crashes.TrackError(e);
                     }
-                if ( await IsFilePresent("BackImageSettings.json"))
-                {
-                    StorageFile imfile = (StorageFile)await ApplicationData.Current.LocalFolder.TryGetItemAsync("BackImageSettings.txt")
-                }
+               
                 }
                      
 
@@ -152,7 +159,45 @@ namespace appLauncher.Helpers
            
 
         }
-        
+
+        public static async Task<BitmapImage> ReturnImage(StorageFile filename)
+        {
+            var logoStream = RandomAccessStreamReference.CreateFromFile(filename);
+            BitmapImage image = new BitmapImage();
+            using (IRandomAccessStreamWithContentType whatIWant = await logoStream.OpenReadAsync())
+            {
+                await image.SetSourceAsync(whatIWant);
+            }
+            return image;
+
+        }
+
+        public static async Task<string> ConvertImageFiletoByteArrayAsync(StorageFile filename)
+        {
+            using (var inputStream = await filename.OpenSequentialReadAsync())
+            {
+                var readStream = inputStream.AsStreamForRead();
+                byte[] buffer = new byte[readStream.Length];
+                await readStream.ReadAsync(buffer, 0, buffer.Length);
+                return Convert.ToBase64String(buffer);
+            }
+        }
+        public static async Task<BitmapImage> ConvertfromByteArraytoBitmapImage(string imagestr)
+        {
+            byte[] bytes = Convert.FromBase64String(imagestr);
+            using (InMemoryRandomAccessStream stream = new InMemoryRandomAccessStream())
+            {
+                using (DataWriter writer = new DataWriter(stream.GetOutputStreamAt(0)))
+                {
+                    writer.WriteBytes(bytes);
+                    await writer.StoreAsync();
+                }
+                BitmapImage image = new BitmapImage();
+                await image.SetSourceAsync(stream);
+                return image;
+            }
+        }
+
     }
     
     }

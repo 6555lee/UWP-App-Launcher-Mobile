@@ -53,7 +53,7 @@ namespace appLauncher
         private async void QueriedAppsListView_ItemClick(object sender, ItemClickEventArgs e)
         {
 
-            await ((finalAppItem)e.ClickedItem).Launch();
+            await ((finalAppItem)e.ClickedItem).LaunchAsync();
 
 
         }

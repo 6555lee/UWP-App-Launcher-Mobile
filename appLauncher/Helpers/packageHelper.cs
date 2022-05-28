@@ -2,10 +2,8 @@
 using appLauncher.Model;
 using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using Windows.ApplicationModel;
 using Windows.ApplicationModel.Core;
@@ -13,17 +11,12 @@ using Windows.Foundation;
 using Windows.Management.Deployment;
 using Windows.Storage.Streams;
 using Windows.UI.Core;
-using Windows.UI.Xaml;
-using Windows.UI.Xaml.Controls;
-using Windows.UI.Xaml.Media.Imaging;
-using Windows.UI.StartScreen;
 using Microsoft.AppCenter.Analytics;
 using Microsoft.AppCenter.Crashes;
-using Newtonsoft.Json;
 
 namespace appLauncher.Helpers
 {
-   public static class PackageHelper
+    public static class PackageHelper
    {
 		
 		
@@ -42,10 +35,6 @@ namespace appLauncher.Helpers
             if (await GlobalVariables.IsFilePresent("collection.txt"))
             {
                 await GlobalVariables.LoadCollectionAsync();
-                if (await GlobalVariables.IsFilePresent("AppTile.txt"))
-                {
-                    
-                }
                 AppsRetreived?.Invoke(true, EventArgs.Empty);
             }
             else { 
@@ -94,12 +83,14 @@ namespace appLauncher.Helpers
                                 }
                                 AllApps.listOfApps.Add(new finalAppItem
                                 {
+                                    AppListentry = applist,
+                                    Pack = item,
                                     appName = applist.DisplayInfo.DisplayName,
                                     appFullName = item.Id.FullName,
                                     appDeveloper = item.Id.Publisher,
                                     appInstalled = item.InstalledDate,
-                                    appLogo = temp
-                                });
+                                    appLogo = temp.Length >= 0 ? temp : new byte[0]
+                                }) ;
                             }
                             catch (Exception e)
                             {
@@ -116,11 +107,7 @@ namespace appLauncher.Helpers
                         Crashes.TrackError(e);
                     }
                 }
-                GlobalVariables.AppForeground = AllApps.listOfApps[0].ForegroundColor;
-                GlobalVariables.AppForeGroundOpacity = AllApps.listOfApps[0].ForegroundOpacity;
-                GlobalVariables.AppBackground = AllApps.listOfApps[0].BackgroundColor;
-                GlobalVariables.AppBackgroundOpacity = AllApps.listOfApps[0].BackgroundOpacity;
-                AppsRetreived?.Invoke(true, EventArgs.Empty);
+             AppsRetreived?.Invoke(true, EventArgs.Empty);
             }
         }
    }

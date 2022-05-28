@@ -9,6 +9,7 @@
     xmlns:control="using:appLauncher.Control"
     xmlns:controls="using:Microsoft.Toolkit.Uwp.UI.Controls"
     xmlns:core="using:Microsoft.Xaml.Interactions.Core"
+    xmlns:ui="using:Microsoft.Toolkit.Uwp.UI"
     xmlns:models="using:appLauncher.Model"
     xmlns:helpers="using:appLauncher.Helpers"
     mc:Ignorable="d"
@@ -24,12 +25,10 @@
         <controls:RotatorTile x:Name="backimage" ItemsSource="{x:Bind helpers:GlobalVariables.backgroundImage}" Direction="Left" >
             <controls:RotatorTile.ItemTemplate>
                 <DataTemplate x:DataType="models:BackgroundImages" >
-                    <Canvas Background="{x:Bind BackImageAsync()}" />
+                    <Image Stretch="UniformToFill" Source="{x:Bind BitmapImageImage}" />
                 </DataTemplate>
             </controls:RotatorTile.ItemTemplate>
         </controls:RotatorTile>
-
-
 
         <!--#region  All Apps-->
         <Grid Name="AppListViewGrid"
@@ -59,18 +58,18 @@
             </FlipView>
             <controls:DropShadowPanel Canvas.ZIndex="100"
                                       Margin="0,0,0,8"
-                        VerticalAlignment="Bottom"
+                                      VerticalAlignment="Bottom"
                         HorizontalAlignment="Center"
                                       HorizontalContentAlignment="Stretch"
                                       VerticalContentAlignment="Stretch"
                                       ShadowOpacity="0.2"
-                                      BlurRadius="10"
-                                      
-                                      >
-                <StackPanel Name="flipViewIndicatorStackPanel"
+                                      BlurRadius="10" >
+
+
+            <StackPanel Name="flipViewIndicatorStackPanel"
                         Orientation="Horizontal"
-                            Background="Transparent"
-                       />
+                        Background="Transparent"/>
+            
             </controls:DropShadowPanel>
             <Grid Grid.Row="1">
                 <GridView ScrollViewer.VerticalScrollMode="Disabled"
