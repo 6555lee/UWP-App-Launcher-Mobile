@@ -1,28 +1,28 @@
 ﻿// Methods for getting installed apps/games from the device are here. Note: Package = App/Game
 using appLauncher.Model;
+
+using Microsoft.AppCenter.Crashes;
+
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
+
 using Windows.ApplicationModel;
 using Windows.ApplicationModel.Core;
-using Windows.Foundation;
 using Windows.Management.Deployment;
-using Windows.Storage.Streams;
-using Windows.UI.Core;
-using Microsoft.AppCenter.Analytics;
-using Microsoft.AppCenter.Crashes;
 
 namespace appLauncher.Helpers
 {
     public static class PackageHelper
-   {
-		
-		
-		
-       public static PackageManager pkgManager = new PackageManager();
-       public static event EventHandler AppsRetreived;
+    {
+
+
+
+        public static PackageManager pkgManager = new PackageManager();
+        public static event EventHandler AppsRetreived;
         /// <summary>
         /// Gets app package and image and returns them as a new "finalAppItem" asynchronously, which will then be used for the app control template.
         /// <para> Of the two getAllApps() methods, this is the preferred version because it doesn't block the stop the rest of the app from running when 
@@ -32,16 +32,41 @@ namespace appLauncher.Helpers
 
         public static async Task GetAllAppsAsync()
         {
+            ObservableCollection<finalAppItem> myitems = new ObservableCollection<finalAppItem>();
+            List<finalAppItem> oc1 = new List<finalAppItem>();
+
             if (await GlobalVariables.IsFilePresent("collection.txt"))
             {
-                await GlobalVariables.LoadCollectionAsync();
-                AppsRetreived?.Invoke(true, EventArgs.Empty);
-            }
-            else { 
+                oc1 = await GlobalVariables.LoadCollectionAsync();
                 IEnumerable<Package> listOfInstalledPackages = pkgManager.FindPackagesForUserWithPackageTypes("", PackageTypes.Main);
                 List<Package> allPackages = listOfInstalledPackages.ToList();
                 foreach (Package item in allPackages)
                 {
+                    IReadOnlyList<AppListEntry> readonlylist = await item.GetAppListEntriesAsync();
+                    List<AppListEntry> applistentries = readonlylist.ToList();
+                    if (applistentries.Count > 0)
+                    {
+                        Debug.WriteLine("YES!");
+                    }
+                    else
+                    {
+                        continue;
+                    }
+
+                    AppListEntry applist = applistentries[0];
+                    int ints = oc1.IndexOf(oc1.First(x => x.appFullName == item.Id.FullName));
+                    oc1[ints].AppListentry = applist;
+                    oc1[ints].Pack = item;
+                    await oc1[ints].SetLogo();
+                }
+            }
+            else
+            {
+                IEnumerable<Package> listOfInstalledPackages = pkgManager.FindPackagesForUserWithPackageTypes("", PackageTypes.Main);
+                List<Package> allPackages = listOfInstalledPackages.ToList();
+                foreach (Package item in allPackages)
+                {
+
                     try
                     {
                         IReadOnlyList<AppListEntry> readonlylist = await item.GetAppListEntriesAsync();
@@ -54,61 +79,75 @@ namespace appLauncher.Helpers
                         {
                             continue;
                         }
+
                         AppListEntry applist = applistentries[0];
-
-                        await Windows.ApplicationModel.Core.CoreApplication.MainView.CoreWindow.Dispatcher.RunAsync(CoreDispatcherPriority.Low, async () =>
-                        {
-                            //UI code here
-                            try
-                            {
-                                RandomAccessStreamReference logoStream;
-                                byte[] temp;
-                                try
-                                {
-                                    logoStream = applist.DisplayInfo.GetLogo(new Size(50, 50));
-
-                                    IRandomAccessStreamWithContentType whatIWant = await logoStream.OpenReadAsync();
-                                    temp = new byte[whatIWant.Size];
-                                    using (DataReader read = new DataReader(whatIWant.GetInputStreamAt(0)))
-                                    {
-                                        await read.LoadAsync((uint)whatIWant.Size);
-                                        read.ReadBytes(temp);
-                                    }
-                                }
-                                catch (Exception e)
-                                {
-                                    Console.Write(e.ToString());
-                                    Crashes.TrackError(e);
-                                    temp = new byte[1];
-                                }
-                                AllApps.listOfApps.Add(new finalAppItem
-                                {
-                                    AppListentry = applist,
-                                    Pack = item,
-                                    appName = applist.DisplayInfo.DisplayName,
-                                    appFullName = item.Id.FullName,
-                                    appDeveloper = item.Id.Publisher,
-                                    appInstalled = item.InstalledDate,
-                                    appLogo = temp.Length >= 0 ? temp : new byte[0]
-                                }) ;
-                            }
-                            catch (Exception e)
-                            {
-                                Debug.WriteLine(e.Message);
-                                Crashes.TrackError(e);
-                                Analytics.TrackEvent(e.ToString());
-                            }
-                        });
+                        finalAppItem fi = new finalAppItem(applist, item);
+                        oc1.Add(fi);
                     }
                     catch (Exception e)
                     {
-
-                        Debug.WriteLine(e.Message);
                         Crashes.TrackError(e);
                     }
+                    //            await Windows.ApplicationModel.Core.CoreApplication.MainView.CoreWindow.Dispatcher.RunAsync(CoreDispatcherPriority.Low, async () =>
+                    //            {
+                    //                //UI code here
+                    //                try
+                    //                {
+                    //                    //RandomAccessStreamReference logoStream;
+                    //                    //byte[] temp;
+                    //                    //try
+                    //                    //{
+                    //                    //    logoStream = applist.DisplayInfo.GetLogo(new Size(50, 50));
+
+                    //                    //    IRandomAccessStreamWithContentType whatIWant = await logoStream.OpenReadAsync();
+                    //                    //    temp = new byte[whatIWant.Size];
+                    //                    //    using (DataReader read = new DataReader(whatIWant.GetInputStreamAt(0)))
+                    //                    //    {
+                    //                    //        await read.LoadAsync((uint)whatIWant.Size);
+                    //                    //        read.ReadBytes(temp);
+                    //                    //    }
+                    //                }
+                    //                catch (Exception e)
+                    //                {
+                    //                    Console.Write(e.ToString());
+                    //                    Crashes.TrackError(e);
+                    //                    //temp = new byte[1];
+                    //                }
+                    ////                    }
+                    ////                AllApps.listOfApps.Add();///new finalAppItem
+                    ////                //{
+                    ////                //    AppListentry = applist,
+                    ////                //    Pack = item,
+                    ////                //    appName = applist.DisplayInfo.DisplayName,
+                    ////                //    appFullName = item.Id.FullName,
+                    ////                //    appDeveloper = item.Id.Publisher,
+                    ////                //    appInstalled = item.InstalledDate,
+                    ////                //    appLogo = temp.Length >= 0 ? temp : new byte[0]
+                    ////                //}) ;
+                    ////            }
+                    ////                catch (Exception e)
+                    ////                {
+                    ////                    Debug.WriteLine(e.Message);
+                    ////                    Crashes.TrackError(e);
+                    ////                    Analytics.TrackEvent(e.ToString());
+                    ////                }
+                    ////            });
+                    ////        }
+                    ////        catch (Exception e)
+                    ////        {
+
+                    ////            Debug.WriteLine(e.Message);
+                    ////            Crashes.TrackError(e);
+                    ////        }
+                    ////    }
+                    //// AppsRetreived?.Invoke(true, EventArgs.Empty);
+                    //}
+
                 }
-             AppsRetreived?.Invoke(true, EventArgs.Empty);
+                AllApps.listOfApps = new PaginationObservableCollection<finalAppItem>(oc1);
+                AppsRetreived?.Invoke(true, EventArgs.Empty);
             }
         }
-   }
+
+    }
 }

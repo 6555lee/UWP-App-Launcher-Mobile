@@ -14,7 +14,7 @@
     xmlns:helpers="using:appLauncher.Helpers"
     mc:Ignorable="d"
     Loaded="Page_Loaded"
-    PointerEntered="Page_PointerEntered"
+    
     >
     
     
@@ -69,15 +69,13 @@
             <StackPanel Name="flipViewIndicatorStackPanel"
                         Orientation="Horizontal"
                         Background="Transparent"/>
-            
-            </controls:DropShadowPanel>
+         </controls:DropShadowPanel>
             <Grid Grid.Row="1">
                 <GridView ScrollViewer.VerticalScrollMode="Disabled"
                       ScrollViewer.VerticalScrollBarVisibility="Disabled"
                       HorizontalAlignment="Center"
                       Name="dockGridView"
                       IsItemClickEnabled="True"
-                      ItemClick="dockGridView_ItemClick"
                       SelectionMode="None">
                     <GridView.ItemsPanel>
                         <ItemsPanelTemplate>

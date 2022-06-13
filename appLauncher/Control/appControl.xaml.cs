@@ -1,27 +1,13 @@
-﻿using appLauncher.Model;
+﻿using appLauncher.Helpers;
+using appLauncher.Model;
+
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
-using System.Runtime.InteropServices.WindowsRuntime;
-using Windows.ApplicationModel.Core;
+
 using Windows.Foundation;
-using Windows.Foundation.Collections;
-using Windows.Storage.Streams;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
-using Windows.UI.Xaml.Controls.Primitives;
-using Windows.UI.Xaml.Data;
-using Windows.UI.Xaml.Input;
-using Windows.UI.Xaml.Media;
-using Windows.UI.Xaml.Media.Imaging;
-using Windows.UI.Xaml.Navigation;
-using appLauncher;
-using Windows.UI;
-using System.Collections.ObjectModel;
-using Windows.UI.Input;
-using Windows.UI.Core;
-using appLauncher.Helpers;
 
 // The User Control item template is documented at https://go.microsoft.com/fwlink/?LinkId=234236
 
@@ -30,45 +16,51 @@ namespace appLauncher.Control
 {
     public sealed partial class appControl : UserControl
     {
-		int page;
-		DispatcherTimer dispatcher;
-        public ObservableCollection<finalAppItem> listOfApps
-        {
-            get { return (ObservableCollection<finalAppItem>)GetValue(listOfAppsProperty); }
-            set { SetValue(listOfAppsProperty, value); }
-        }
-        // Using a DependencyProperty as the backing store for listOfApps.  This enables animation, styling, binding, etc...
-        public static readonly DependencyProperty listOfAppsProperty =
-            DependencyProperty.Register("listOfApps", typeof(ObservableCollection<finalAppItem>), typeof(appControl), null);
+        int page;
+        DispatcherTimer dispatcher;
+
+        //public ObservableCollection<finalAppItem> listOfApps
+        //{
+        //    get { return (ObservableCollection<finalAppItem>)GetValue(listOfAppsProperty); }
+        //    set { SetValue(listOfAppsProperty, value); }
+        //}
+        //// Using a DependencyProperty as the backing store for listOfApps.  This enables animation, styling, binding, etc...
+        //public static readonly DependencyProperty listOfAppsProperty =
+        //    DependencyProperty.Register("listOfApps", typeof(ObservableCollection<finalAppItem>), typeof(appControl), null);
         public appControl()
         {
             this.InitializeComponent();
-			this.Loaded += AppControl_Loaded;
+            this.Loaded += AppControl_Loaded;
         }
 
-		private void AppControl_Loaded(object sender, RoutedEventArgs e)
-		{     
-
-            GridViewMain.ItemsSource = AllApps.listOfApps.Skip(GlobalVariables.pagenum * GlobalVariables.appsperscreen).Take(GlobalVariables.appsperscreen).ToList();
+        private void AppControl_Loaded(object sender, RoutedEventArgs e)
+        {
+            AllApps.listOfApps.CurrentPage = GlobalVariables.pagenum;
+            AllApps.listOfApps.PageSize = GlobalVariables.appsperscreen;
+            GridViewMain.ItemsSource = AllApps.listOfApps;
         }
 
-		private void Dispatcher_Tick(object sender, object e)
-		{
-			ProgressRing.IsActive = false;
-			dispatcher.Stop();
-            GridViewMain.ItemsSource = AllApps.listOfApps.Skip(GlobalVariables.pagenum * GlobalVariables.appsperscreen).Take(GlobalVariables.appsperscreen).ToList();
-		}
-		public void SwitchedToThisPage()
-		{
-            GridViewMain.ItemsSource = AllApps.listOfApps.Skip(GlobalVariables.pagenum * GlobalVariables.appsperscreen).Take(GlobalVariables.appsperscreen).ToList();
+        private void Dispatcher_Tick(object sender, object e)
+        {
+            ProgressRing.IsActive = false;
+            dispatcher.Stop();
+            AllApps.listOfApps.CurrentPage = GlobalVariables.pagenum;
+            AllApps.listOfApps.PageSize = GlobalVariables.appsperscreen;
+            GridViewMain.ItemsSource = AllApps.listOfApps;
+        }
+        public void SwitchedToThisPage()
+        {
+            AllApps.listOfApps.CurrentPage = GlobalVariables.pagenum;
+            AllApps.listOfApps.PageSize = GlobalVariables.appsperscreen;
+            GridViewMain.ItemsSource = AllApps.listOfApps;
         }
 
-		public void SwitchedFromThisPage()
-		{
-			GridViewMain.ItemsSource = null;
-		}
+        public void SwitchedFromThisPage()
+        {
+            GridViewMain.ItemsSource = null;
+        }
 
-         private void GridViewMain_DragItemsStarting(object sender, DragItemsStartingEventArgs e)
+        private void GridViewMain_DragItemsStarting(object sender, DragItemsStartingEventArgs e)
         {
             GlobalVariables.isdragging = true;
             object item = e.Items.First();
@@ -81,7 +73,7 @@ namespace appLauncher.Control
         private void GridViewMain_Drop(object sender, DragEventArgs e)
         {
             GridView view = sender as GridView;
-           
+
             //Find the position where item will be dropped in the gridview
             Point pos = e.GetPosition(view.ItemsPanelRoot);
 
@@ -100,12 +92,12 @@ namespace appLauncher.Control
             AllApps.listOfApps.Insert(GlobalVariables.newindex, GlobalVariables.itemdragged);
             GlobalVariables.pagenum = (int)this.DataContext;
             SwitchedToThisPage();
-          ((Window.Current.Content as Frame).Content as MainPage).UpdateIndicator(GlobalVariables.pagenum);
+            ((Window.Current.Content as Frame).Content as MainPage).UpdateIndicator(GlobalVariables.pagenum);
 
         }
 
         private void GridViewMain_DragOver(object sender, DragEventArgs e)
-        {            
+        {
             GridView d = (GridView)sender;
             e.AcceptedOperation = Windows.ApplicationModel.DataTransfer.DataPackageOperation.Move;
             FlipView c = (FlipView)((Window.Current.Content as Frame).Content as MainPage).getFlipview();
@@ -146,6 +138,6 @@ namespace appLauncher.Control
             await fi.LaunchAsync();
         }
 
-     
+
     }
 }

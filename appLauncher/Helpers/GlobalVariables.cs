@@ -1,22 +1,17 @@
-﻿using appLauncher.Helpers;
-using appLauncher.Model;
+﻿using appLauncher.Model;
 
 using Microsoft.AppCenter.Analytics;
 using Microsoft.AppCenter.Crashes;
 
 using Newtonsoft.Json;
 
-using Swordfish.NET.Collections;
-
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
-using System.Runtime.InteropServices.WindowsRuntime;
 using System.Threading.Tasks;
 
 using Windows.Foundation;
-using Windows.Graphics.Imaging;
 using Windows.Storage;
 using Windows.Storage.Streams;
 using Windows.UI;
@@ -29,14 +24,14 @@ namespace appLauncher.Helpers
         /// <summary>
         /// App Tile Settings
         /// </summary>
- 
-      
+
+
         /// <summary>
         /// Background Image Settings
         /// </summary>
         public static ObservableCollection<BackgroundImages> backgroundImage { get; set; } = new ObservableCollection<BackgroundImages>();
         public static Color ImageColor { get; set; } = Colors.Transparent;
-        public static double ImageOpacity { get; set; } = .25; 
+        public static double ImageOpacity { get; set; } = .25;
 
 
         /// <summary>
@@ -58,8 +53,8 @@ namespace appLauncher.Helpers
         }
         public static int columns { get; set; }
 
-       
-        
+
+
         /// <summary>
         /// AppControl Control Settings
         /// </summary>
@@ -83,37 +78,37 @@ namespace appLauncher.Helpers
             await FileIO.AppendTextAsync(await stors.CreateFileAsync("logfile.txt", CreationCollisionOption.OpenIfExists), Environment.NewLine);
             Analytics.TrackEvent(texttolog);
         }
-       
-        public static async Task LoadCollectionAsync()
+
+        public static async Task<List<finalAppItem>> LoadCollectionAsync()
         {
-           
-            //List<finalAppItem> oc1 = AllApps.listOfApps.ToList();
+
+            List<finalAppItem> oc1 = new List<finalAppItem>();
             //ObservableCollection<finalAppItem> oc = new ObservableCollection<finalAppItem>();
-            if (await IsFilePresent("collection.txt"))
+            try
             {
 
                 StorageFile item = (StorageFile)await ApplicationData.Current.LocalFolder.TryGetItemAsync("collection.txt");
-                var apps = await Windows.Storage.FileIO.ReadTextAsync(item);
-                var allapps = JsonConvert.DeserializeObject<List<finalAppItem>>(apps);
-                ConcurrentObservableCollection<finalAppItem> coc = new ConcurrentObservableCollection<finalAppItem>();
-                coc.AddRange(allapps);
-                AllApps.listOfApps = coc;
+                string apps = await Windows.Storage.FileIO.ReadTextAsync(item);
+                oc1 = JsonConvert.DeserializeObject<List<finalAppItem>>(apps);
+
             }
-            else
+            catch (Exception e)
             {
-                await PackageHelper.GetAllAppsAsync();
+                Crashes.TrackError(e);
+                await Logging(e.Message);
             }
-          
+            return oc1;
+
         }
         public static async Task SaveCollectionAsync()
         {
 
             if (AllApps.listOfApps.Count > 0)
             {
-                 var te = JsonConvert.SerializeObject(AllApps.listOfApps, Formatting.Indented);
-                 StorageFile item = (StorageFile)await ApplicationData.Current.LocalFolder.CreateFileAsync("collection.txt", CreationCollisionOption.ReplaceExisting);
-                 await FileIO.WriteTextAsync(item, te);
-            }           
+                var te = JsonConvert.SerializeObject(AllApps.listOfApps, Formatting.Indented);
+                StorageFile item = (StorageFile)await ApplicationData.Current.LocalFolder.CreateFileAsync("collection.txt", CreationCollisionOption.ReplaceExisting);
+                await FileIO.WriteTextAsync(item, te);
+            }
 
         }
         public static async Task<bool> IsFilePresent(string fileName)
@@ -123,40 +118,40 @@ namespace appLauncher.Helpers
         }
         public static async Task LoadBackgroundImages()
         {
-                if (await IsFilePresent("images.txt"))
+            if (await IsFilePresent("images.txt"))
+            {
+                try
                 {
-                    try
-                    {
-                        StorageFile item = (StorageFile)await ApplicationData.Current.LocalFolder.TryGetItemAsync("images.txt");
-                        var images = await FileIO.ReadTextAsync(item);
-                        backgroundImage = JsonConvert.DeserializeObject<ObservableCollection<BackgroundImages>>(images);
+                    StorageFile item = (StorageFile)await ApplicationData.Current.LocalFolder.TryGetItemAsync("images.txt");
+                    var images = await FileIO.ReadTextAsync(item);
+                    backgroundImage = JsonConvert.DeserializeObject<ObservableCollection<BackgroundImages>>(images);
                     foreach (var items in backgroundImage)
                     {
                         BitmapImage bmi = await GlobalVariables.ConvertfromByteArraytoBitmapImage(items.ImageData);
                         items.BitmapImageImage = bmi;
                     }
-                   
-                      
-                    }
-                    catch (Exception e)
-                    {
-                      await Logging(e.ToString());
-                      Crashes.TrackError(e);
-                    }
-               
+
+
                 }
-                     
+                catch (Exception e)
+                {
+                    await Logging(e.ToString());
+                    Crashes.TrackError(e);
+                }
+
+            }
+
 
         }
         public static async Task SaveImageOrder()
         {
             if (backgroundImage.Count > 0)
             {
-                var imageorder = JsonConvert.SerializeObject(backgroundImage,Formatting.Indented);
+                var imageorder = JsonConvert.SerializeObject(backgroundImage, Formatting.Indented);
                 StorageFile item = (StorageFile)await ApplicationData.Current.LocalFolder.CreateFileAsync("images.txt", CreationCollisionOption.ReplaceExisting);
                 await FileIO.WriteTextAsync(item, imageorder);
             }
-           
+
 
         }
 
@@ -199,6 +194,6 @@ namespace appLauncher.Helpers
         }
 
     }
-    
-    }
+
+}
 

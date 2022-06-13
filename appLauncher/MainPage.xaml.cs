@@ -3,18 +3,19 @@ using appLauncher.Control;
 using appLauncher.Helpers;
 using appLauncher.Model;
 using appLauncher.Pages;
+
 using Microsoft.AppCenter.Analytics;
 using Microsoft.AppCenter.Crashes;
 using Microsoft.Toolkit.Uwp.UI.Animations;
-using Swordfish.NET.Collections;
+
 using System;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
+
 using Windows.Foundation.Collections;
 using Windows.Storage;
 using Windows.UI;
-using Windows.UI.Core;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Input;
@@ -37,7 +38,7 @@ namespace appLauncher
         private int maxColumns;
         public static FlipViewItem flipViewTemplate;
         StorageFolder localFolder = ApplicationData.Current.LocalFolder;
-       
+
 
         // Delays updating the app list when the size changes.
         DispatcherTimer sizeChangeTimer = new DispatcherTimer();
@@ -71,7 +72,7 @@ namespace appLauncher
         // Better than doing this inside the the flip view item template since you don't have a timer that's always running anymore.
         private void SizeChangeTimer_Tick(object sender, object e)
         {
-            this.screensContainerFlipView.SelectedIndex = (GlobalVariables.pagenum > 0) ? GlobalVariables.pagenum : 0;
+            AllApps.listOfApps.CurrentPage = this.screensContainerFlipView.SelectedIndex = (GlobalVariables.pagenum > 0) ? GlobalVariables.pagenum : 0;
             if (currentTimeLeft == 0)
             {
                 currentTimeLeft = 0;
@@ -79,7 +80,7 @@ namespace appLauncher
                 maxRows = GlobalVariables.NumofRoworColumn(12, 84, (int)screensContainerFlipView.ActualHeight);
                 maxColumns = GlobalVariables.NumofRoworColumn(12, 64, (int)screensContainerFlipView.ActualWidth);
                 GlobalVariables.columns = maxColumns;
-                GlobalVariables.appsperscreen = maxColumns * maxRows;
+                AllApps.listOfApps.PageSize = GlobalVariables.appsperscreen = maxColumns * maxRows;
                 int additionalPagesToMake = calculateExtraPages(GlobalVariables.appsperscreen) - 1;
                 int fullPages = additionalPagesToMake;
                 int appsLeftToAdd = AllApps.listOfApps.Count() - (fullPages * GlobalVariables.appsperscreen);
@@ -163,10 +164,10 @@ namespace appLauncher
         private async void Page_Loaded(object sender, RoutedEventArgs e)
         {
             await GlobalVariables.LoadBackgroundImages();
-            this.screensContainerFlipView.SelectedIndex = (GlobalVariables.pagenum > 0) ? GlobalVariables.pagenum : 0;
+            AllApps.listOfApps.CurrentPage = this.screensContainerFlipView.SelectedIndex = (GlobalVariables.pagenum > 0) ? GlobalVariables.pagenum : 0;
             maxRows = GlobalVariables.NumofRoworColumn(12, 94, (int)screensContainerFlipView.ActualHeight);
             maxColumns = GlobalVariables.NumofRoworColumn(12, 74, (int)screensContainerFlipView.ActualWidth);
-            GlobalVariables.columns = maxColumns;
+            AllApps.listOfApps.PageSize = GlobalVariables.columns = maxColumns;
             GlobalVariables.appsperscreen = maxColumns * maxRows;
             int additionalPagesToMake = calculateExtraPages(GlobalVariables.appsperscreen) - 1;
             int fullPages = additionalPagesToMake;
@@ -238,17 +239,6 @@ namespace appLauncher
         }
 
         /// <summary>
-        /// (Not implemented yet) Will attempt to launch an app in the launcher dock.
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        private void dockGridView_ItemClick(object sender, ItemClickEventArgs e)
-        {
-            //TODO: try cast object as appItem then launch the app
-
-        }
-
-        /// <summary>
         /// Runs when launcher settings is selected.
         /// </summary>
         /// <param name="sender"></param>
@@ -300,21 +290,7 @@ namespace appLauncher
             IndicatorAnimation.oldAnimatedEllipse = ellipseToAnimate;
         }
 
-        /// <summary>
-        /// Ensures expected behaviour when using the launcher with a touch screen input.
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        private void Page_PointerEntered(object sender, PointerRoutedEventArgs e)
-        {
-            for (int i = 1; i < screensContainerFlipView.Items.Count; i++)
-            {
 
-                //FlipViewItem screen = (FlipViewItem)screensContainerFlipView.Items[i];
-                //GridView gridOfApps = (GridView)screen.Content;
-                //disableScrollViewer(screensContainerFlipView);
-            }
-        }
 
         private void allAppsButton_Tapped(object sender, TappedRoutedEventArgs e)
         {
@@ -329,23 +305,23 @@ namespace appLauncher
             {
                 case "AtoZ":
                     {
-                       
-                     var reordered =(ConcurrentObservableCollection<finalAppItem>) AllApps.listOfApps.OrderBy(x => x.appName);
-                     AllApps.listOfApps = reordered;
+
+                        var reordered = AllApps.listOfApps.OrderBy(x => x.appName).ToList();
+                        AllApps.listOfApps = new PaginationObservableCollection<finalAppItem>(reordered);
                     }
 
                     break;
                 case "Developer":
                     {
 
-                       var reordered = (ConcurrentObservableCollection<finalAppItem>)AllApps.listOfApps.OrderBy(x => x.appDeveloper);
-                        AllApps.listOfApps = reordered;
+                        var reordered = AllApps.listOfApps.OrderBy(x => x.appDeveloper).ToList();
+                        AllApps.listOfApps = new PaginationObservableCollection<finalAppItem>(reordered);
                     }
                     break;
                 case "Installed":
                     {
-                        var reordered =(ConcurrentObservableCollection<finalAppItem>)AllApps.listOfApps.OrderBy(x => x.appInstalled);
-                        AllApps.listOfApps = reordered;
+                        var reordered = AllApps.listOfApps.OrderBy(x => x.appInstalled).ToList();
+                        AllApps.listOfApps = new PaginationObservableCollection<finalAppItem>(reordered);
                     }
                     break;
                 default:
@@ -353,7 +329,7 @@ namespace appLauncher
             }
             this.Frame.Navigate(typeof(appLauncher.MainPage));
         }
-        private void FlipViewMain_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        private async void FlipViewMain_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             GlobalVariables.pagenum = ((FlipView)sender).SelectedIndex;
             if (e.AddedItems.Count > 0)
@@ -368,7 +344,7 @@ namespace appLauncher
                 appControl userControl = FindFirstElementInVisualTree<appControl>(flipViewItem);
                 userControl.SwitchedFromThisPage();
             }
-            AdjustIndicatorStackPanel(GlobalVariables.pagenum);
+            await AdjustIndicatorStackPanel(GlobalVariables.pagenum);
         }
 
         private T FindFirstElementInVisualTree<T>(DependencyObject parentElement) where T : DependencyObject
